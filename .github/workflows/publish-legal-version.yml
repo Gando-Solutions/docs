@@ -1,6 +1,6 @@
 # Place at .github/workflows/publish-legal-version.yml in Gando-Solutions/docs.
 # Scripts live in .github/legal-archive/ (build-archive.sh, render-pdf.cjs, legal-documents.json).
-# One button: Actions > Publish legal version > Run workflow. It archives the text, tags it, and opens the manifest PR in the app repo.
+# One button: Actions > Publish legal version > Run workflow. It archives the text, records the version in the app database, and publishes the release.
 name: Publish legal version
 
 on:
@@ -31,7 +31,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       TAG: ${{ inputs.document }}-${{ inputs.effective_date }}
-      # LEGAL_MODE secret: production (plain secret names) or staging / staging_<name> (secret names prefixed STAGING_ / STAGING_<NAME>_)
+      # LEGAL_MODE secret: production (plain secret names) or staging (secret names prefixed STAGING_)
       MODE: ${{ secrets.LEGAL_MODE }}
       SECRET_PREFIX: ${{ secrets.LEGAL_MODE == 'production' && '' || format('{0}_', secrets.LEGAL_MODE) }}
       DRY_RUN: ${{ inputs.dry_run }}
@@ -47,11 +47,10 @@ jobs:
         run: |
           [[ "$MODE" =~ ^[a-z0-9_]+$ ]] || { echo "LEGAL_MODE secret is empty or invalid" >&2; exit 1; }
           case "$MODE" in
-            production) base=main; prefix="" ;;
-            staging|staging_*) base=staging; prefix="$MODE-" ;;
-            *) echo "LEGAL_MODE must be production, staging or staging_<name>" >&2; exit 1 ;;
+            production) prefix="" ;;
+            staging) prefix="$MODE-" ;;
+            *) echo "LEGAL_MODE must be production or staging" >&2; exit 1 ;;
           esac
-          echo "BASE_BRANCH=$base" >> "$GITHUB_ENV"
           echo "RELEASE_TAG=$prefix$TAG" >> "$GITHUB_ENV"
           echo "PRERELEASE=$([ "$MODE" = production ] && echo false || echo true)" >> "$GITHUB_ENV"
 
@@ -64,21 +63,21 @@ jobs:
           S3: ${{ secrets[format('{0}LEGAL_ARCHIVE_REGION', env.SECRET_PREFIX)] }}
           S4: ${{ secrets[format('{0}LEGAL_ARCHIVE_ACCESS_KEY_ID', env.SECRET_PREFIX)] }}
           S5: ${{ secrets[format('{0}LEGAL_ARCHIVE_SECRET_ACCESS_KEY', env.SECRET_PREFIX)] }}
-          S6: ${{ secrets.APP_REPO_TOKEN }}
+          S6: ${{ secrets[format('{0}LEGAL_DB_URL', env.SECRET_PREFIX)] }}
         run: |
           missing=0
           for n in 1 2 3 4 5 6; do
-            v="S$n"; [ -n "${!v}" ] || { echo "::error::secret #$n is empty or missing (1 bucket, 2 endpoint, 3 region, 4 key id, 5 key secret, 6 APP_REPO_TOKEN; mode prefix: '${SECRET_PREFIX}')"; missing=1; }
+            v="S$n"; [ -n "${!v}" ] || { echo "::error::secret #$n is empty or missing (1 bucket, 2 endpoint, 3 region, 4 key id, 5 key secret, 6 database URL; mode prefix: '${SECRET_PREFIX}')"; missing=1; }
           done
           exit $missing
 
-      - name: Check app repo token
+      - name: Check database access
         if: inputs.dry_run != true
         env:
-          APP_REPO_TOKEN: ${{ secrets.APP_REPO_TOKEN }}
+          DB_URL: ${{ secrets[format('{0}LEGAL_DB_URL', env.SECRET_PREFIX)] }}
         run: |
-          push=$(GH_TOKEN="$APP_REPO_TOKEN" gh api repos/Gando-Solutions/gando --jq .permissions.push 2>&1) || true
-          [ "$push" = true ] || { echo "::error::APP_REPO_TOKEN cannot push to Gando-Solutions/gando (placeholder, revoked, not approved yet or wrong repo)"; exit 1; }
+          psql "$DB_URL" -v ON_ERROR_STOP=1 -q -t -A -c "select count(*) from legal_document_versions" >/dev/null \
+            || { echo "::error::cannot read legal_document_versions with the database URL (wrong user, password or host, or the migration is not deployed)"; exit 1; }
 
       - name: Check the version does not exist yet
         run: |
@@ -133,40 +132,35 @@ jobs:
             aws s3api put-object --bucket "$BUCKET" --key "$prefix/$f" --body "$dir/$f" --checksum-algorithm SHA256
           done
 
-      - name: Open the manifest PR in the app repo
+      - name: Record the version in the database
         if: env.DRY_RUN != 'true'
         env:
-          APP_REPO: Gando-Solutions/gando
-          APP_REPO_TOKEN: ${{ secrets.APP_REPO_TOKEN }}
+          DB_URL: ${{ secrets[format('{0}LEGAL_DB_URL', env.SECRET_PREFIX)] }}
         run: |
           set -euo pipefail
-          : "${APP_REPO_TOKEN:?APP_REPO_TOKEN secret is not set}"
-          base="$BASE_BRANCH"
-          export GH_TOKEN="$APP_REPO_TOKEN"
           entry="$RUNNER_TEMP/out/$TAG/entry.json"
-          doc=$(jq -r .document "$entry")
-          git clone --depth 1 --branch "$base" "https://x-access-token:${APP_REPO_TOKEN}@github.com/${APP_REPO}.git" "$RUNNER_TEMP/app"
-          cd "$RUNNER_TEMP/app"
-          branch="chore(GAN-1409)/legal-manifest-$TAG"
-          # a re-run after a later failure must not open a second PR
-          if [ "$(gh pr list --repo "$APP_REPO" --head "$branch" --state open --json number --jq length)" != 0 ]; then
-            echo "a PR for $branch is already open, skipping"; exit 0
-          fi
-          git checkout -b "$branch"
-          manifest=modules/legal-consent/legal-documents.json
-          mkdir -p "$(dirname "$manifest")"
-          if git check-ignore -q "$manifest"; then echo "::error::$manifest is git-ignored in $APP_REPO"; exit 1; fi
-          [ -f "$manifest" ] || echo '{}' > "$manifest"
-          jq --arg d "$doc" --slurpfile e "$entry" '.[$d] = ((.[$d] // []) + $e | sort_by(.effectiveFrom))' "$manifest" > documents.tmp
-          mv documents.tmp "$manifest"
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add "$manifest"
-          git commit -m "chore(legal): add $TAG to the legal documents manifest" -m "- Entry generated by the docs repo publish workflow (hash, commit, archive key)"
-          git push -u origin "$branch"
-          gh pr create --repo "$APP_REPO" --head "$branch" --base "$base" \
-            --title "chore(legal): add $TAG to the legal documents manifest" \
-            --body "Version \`$TAG\`, effective $(jq -r .effectiveFrom "$entry"). Entry generated by the publish workflow in Gando-Solutions/docs. Merge and deploy before the effective date."
+          repo="$GITHUB_REPOSITORY"
+          # effective_from is the start of the effective day in Paris, stored as UTC (the column has no time zone)
+          psql "$DB_URL" -v ON_ERROR_STOP=1 -q \
+            -v document="$(jq -r .document "$entry")" \
+            -v version="$(jq -r .version "$entry")" \
+            -v effective_from="$(jq -r .effectiveFrom "$entry")" \
+            -v sha256="$(jq -r .sha256 "$entry")" \
+            -v archive_key="$(jq -r .archiveKey "$entry")" \
+            -v commit="$(jq -r .commit "$entry")" \
+            -v release_url="https://github.com/$repo/releases/tag/$RELEASE_TAG" \
+            -v source_url="https://github.com/$repo/blob/$(jq -r .commit "$entry")/$(jq -r .path "$entry")" <<'SQL'
+          INSERT INTO legal_document_versions (document, version, effective_from, sha256, archive_key, commit, release_url, source_url)
+          VALUES (:'document', :'version', (:'effective_from'::date::timestamp AT TIME ZONE 'Europe/Paris') AT TIME ZONE 'UTC',
+                  :'sha256', :'archive_key', :'commit', :'release_url', :'source_url')
+          ON CONFLICT (version) DO NOTHING;
+          SQL
+          # a re-run is fine only if the stored hash is the same text
+          stored=$(psql "$DB_URL" -v ON_ERROR_STOP=1 -q -t -A -v version="$(jq -r .version "$entry")" <<'SQL'
+          SELECT sha256 FROM legal_document_versions WHERE version = :'version';
+          SQL
+          )
+          [ "$stored" = "$(jq -r .sha256 "$entry")" ] || { echo "::error::version already recorded with a different hash" >&2; exit 1; }
 
       # draft, attach the files, then publish: with "release immutability" enabled on the repo, the tag and the files can no longer change after this
       - name: Tag and release
@@ -186,5 +180,5 @@ jobs:
           {
             echo "### $TAG (dry run: $DRY_RUN)"
             if [ -f "$f" ]; then echo '```json'; cat "$f"; echo '```'; fi
-            echo "Order: upload, manifest PR, then the release (the only irreversible step). A failed run can be re-run: an identical upload is skipped and an open PR is reused."
+            echo "Order: upload, database row, then the release (the only irreversible step). A failed run can be re-run: an identical upload is skipped and an open PR is reused."
           } >> "$GITHUB_STEP_SUMMARY"
