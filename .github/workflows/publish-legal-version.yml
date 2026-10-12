@@ -1,0 +1,177 @@
+# Place at .github/workflows/publish-legal-version.yml in Gando-Solutions/docs.
+# Scripts live in .github/legal-archive/ (build-archive.sh, render-pdf.cjs, legal-documents.json).
+# One button: Actions > Publish legal version > Run workflow. It archives the text, tags it, and opens the manifest PR in the app repo.
+name: Publish legal version
+
+on:
+  workflow_dispatch:
+    inputs:
+      document:
+        description: Document to publish
+        type: choice
+        options: [customer-terms, operator-terms, privacy]
+        required: true
+      effective_date:
+        description: Effective date, YYYY-MM-DD
+        required: true
+      dry_run:
+        description: Build only, no upload, no tag, no PR
+        type: boolean
+        default: false
+
+permissions:
+  contents: write # create the tag and the release
+
+concurrency:
+  group: publish-legal-version
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      TAG: ${{ inputs.document }}-${{ inputs.effective_date }}
+      # LEGAL_MODE secret: production (plain secret names) or staging / staging_<name> (secret names prefixed STAGING_ / STAGING_<NAME>_)
+      MODE: ${{ secrets.LEGAL_MODE }}
+      SECRET_PREFIX: ${{ secrets.LEGAL_MODE == 'production' && '' || format('{0}_', secrets.LEGAL_MODE) }}
+      DRY_RUN: ${{ inputs.dry_run }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: main
+
+      # non-production releases get the mode as a tag prefix, so they never collide with production ones
+      - name: Resolve mode
+        run: |
+          [[ "$MODE" =~ ^[a-z0-9_]+$ ]] || { echo "LEGAL_MODE secret is empty or invalid" >&2; exit 1; }
+          case "$MODE" in
+            production) base=main; prefix="" ;;
+            staging|staging_*) base=staging; prefix="$MODE-" ;;
+            *) echo "LEGAL_MODE must be production, staging or staging_<name>" >&2; exit 1 ;;
+          esac
+          echo "BASE_BRANCH=$base" >> "$GITHUB_ENV"
+          echo "RELEASE_TAG=$prefix$TAG" >> "$GITHUB_ENV"
+          echo "PRERELEASE=$([ "$MODE" = production ] && echo false || echo true)" >> "$GITHUB_ENV"
+
+      # fail before anything irreversible (upload, immutable release) if a secret is missing
+      - name: Check secrets
+        if: inputs.dry_run != true
+        env:
+          S1: ${{ secrets[format('{0}LEGAL_ARCHIVE_BUCKET', env.SECRET_PREFIX)] }}
+          S2: ${{ secrets[format('{0}LEGAL_ARCHIVE_ENDPOINT', env.SECRET_PREFIX)] }}
+          S3: ${{ secrets[format('{0}LEGAL_ARCHIVE_REGION', env.SECRET_PREFIX)] }}
+          S4: ${{ secrets[format('{0}LEGAL_ARCHIVE_ACCESS_KEY_ID', env.SECRET_PREFIX)] }}
+          S5: ${{ secrets[format('{0}LEGAL_ARCHIVE_SECRET_ACCESS_KEY', env.SECRET_PREFIX)] }}
+          S6: ${{ secrets.APP_REPO_TOKEN }}
+        run: |
+          missing=0
+          for n in 1 2 3 4 5 6; do
+            v="S$n"; [ -n "${!v}" ] || { echo "::error::secret #$n is empty or missing (1 bucket, 2 endpoint, 3 region, 4 key id, 5 key secret, 6 APP_REPO_TOKEN; mode prefix: '${SECRET_PREFIX}')"; missing=1; }
+          done
+          exit $missing
+
+      - name: Check app repo token
+        if: inputs.dry_run != true
+        env:
+          APP_REPO_TOKEN: ${{ secrets.APP_REPO_TOKEN }}
+        run: |
+          push=$(GH_TOKEN="$APP_REPO_TOKEN" gh api repos/Gando-Solutions/gando --jq .permissions.push 2>&1) || true
+          [ "$push" = true ] || { echo "::error::APP_REPO_TOKEN cannot push to Gando-Solutions/gando (placeholder, revoked, not approved yet or wrong repo)"; exit 1; }
+
+      - name: Check the version does not exist yet
+        run: |
+          if git rev-parse -q --verify "refs/tags/$RELEASE_TAG" >/dev/null; then echo "tag $RELEASE_TAG already exists" >&2; exit 1; fi
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install renderer
+        run: |
+          npm install --no-save --prefix "$RUNNER_TEMP/render" marked@12.0.2 playwright-core@1.50.0
+          npx --yes playwright-core@1.50.0 install --with-deps chromium
+          echo "NODE_PATH=$RUNNER_TEMP/render/node_modules" >> "$GITHUB_ENV"
+          echo "CHROMIUM_PATH=$(node -e "console.log(require('$RUNNER_TEMP/render/node_modules/playwright-core').chromium.executablePath())")" >> "$GITHUB_ENV"
+
+      - name: Build archive
+        run: .github/legal-archive/build-archive.sh "$TAG" "$RUNNER_TEMP/out" "$(git rev-parse HEAD)"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.TAG }}
+          path: ${{ runner.temp }}/out/${{ env.TAG }}
+          if-no-files-found: error
+
+      - name: Upload to Supabase Storage (S3 API)
+        if: env.DRY_RUN != 'true'
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets[format('{0}LEGAL_ARCHIVE_ACCESS_KEY_ID', env.SECRET_PREFIX)] }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets[format('{0}LEGAL_ARCHIVE_SECRET_ACCESS_KEY', env.SECRET_PREFIX)] }}
+          AWS_DEFAULT_REGION: ${{ secrets[format('{0}LEGAL_ARCHIVE_REGION', env.SECRET_PREFIX)] }}
+          AWS_ENDPOINT_URL: ${{ secrets[format('{0}LEGAL_ARCHIVE_ENDPOINT', env.SECRET_PREFIX)] }}
+          BUCKET: ${{ secrets[format('{0}LEGAL_ARCHIVE_BUCKET', env.SECRET_PREFIX)] }}
+        run: |
+          set -euo pipefail
+          : "${AWS_ACCESS_KEY_ID:?LEGAL_ARCHIVE_ACCESS_KEY_ID secret is not set}" "${AWS_SECRET_ACCESS_KEY:?LEGAL_ARCHIVE_SECRET_ACCESS_KEY secret is not set}" "${BUCKET:?LEGAL_ARCHIVE_BUCKET secret is not set}" "${AWS_ENDPOINT_URL:?LEGAL_ARCHIVE_ENDPOINT secret is not set}"
+          aws configure set default.s3.addressing_style path
+          dir="$RUNNER_TEMP/out/$TAG"
+          prefix=$(jq -r .archiveKey "$dir/entry.json")
+          # Supabase Storage has no Object Lock: refuse to overwrite an existing archive (the immutable GitHub release is the tamper-proof copy)
+          if aws s3api head-object --bucket "$BUCKET" --key "$prefix/entry.json" >/dev/null 2>&1; then
+            echo "$prefix already archived" >&2; exit 1
+          fi
+          for f in source.mdx sha256.txt rendered.pdf entry.json; do
+            aws s3api put-object --bucket "$BUCKET" --key "$prefix/$f" --body "$dir/$f" --checksum-algorithm SHA256
+          done
+
+      # draft, attach the files, then publish: with "release immutability" enabled on the repo, the tag and the files can no longer change after this
+      - name: Tag and release
+        if: env.DRY_RUN != 'true'
+        run: |
+          dir="$RUNNER_TEMP/out/$TAG"
+          [ "$PRERELEASE" = true ] && pre=(--prerelease) || pre=()
+          gh release create "$RELEASE_TAG" --draft "${pre[@]}" --target "$(jq -r .commit "$dir/entry.json")" --title "$RELEASE_TAG" \
+            --notes "$(jq -r '"sha256: \(.sha256)\ncommit: \(.commit)"' "$dir/entry.json")" \
+            "$dir/source.mdx" "$dir/sha256.txt" "$dir/rendered.pdf" "$dir/entry.json"
+          gh release edit "$RELEASE_TAG" --draft=false
+
+      - name: Open the manifest PR in the app repo
+        if: env.DRY_RUN != 'true'
+        env:
+          APP_REPO: Gando-Solutions/gando
+          APP_REPO_TOKEN: ${{ secrets.APP_REPO_TOKEN }}
+        run: |
+          set -euo pipefail
+          : "${APP_REPO_TOKEN:?APP_REPO_TOKEN secret is not set}"
+          base="$BASE_BRANCH"
+          export GH_TOKEN="$APP_REPO_TOKEN"
+          entry="$RUNNER_TEMP/out/$TAG/entry.json"
+          doc=$(jq -r .document "$entry")
+          git clone --depth 1 --branch "$base" "https://x-access-token:${APP_REPO_TOKEN}@github.com/${APP_REPO}.git" "$RUNNER_TEMP/app"
+          cd "$RUNNER_TEMP/app"
+          branch="chore(GAN-1409)/legal-manifest-$TAG"
+          git checkout -b "$branch"
+          mkdir -p modules/legal-consent/data
+          [ -f modules/legal-consent/data/documents.json ] || echo '{}' > modules/legal-consent/data/documents.json
+          jq --arg d "$doc" --slurpfile e "$entry" '.[$d] = ((.[$d] // []) + $e | sort_by(.effectiveFrom))' modules/legal-consent/data/documents.json > documents.tmp
+          mv documents.tmp modules/legal-consent/data/documents.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add modules/legal-consent/data/documents.json
+          git commit -m "chore(legal): add $TAG to the legal documents manifest" -m "- Entry generated by the docs repo publish workflow (hash, commit, archive key)"
+          git push -u origin "$branch"
+          gh pr create --repo "$APP_REPO" --head "$branch" --base "$base" \
+            --title "chore(legal): add $TAG to the legal documents manifest" \
+            --body "Version \`$TAG\`, effective $(jq -r .effectiveFrom "$entry"). Entry generated by the publish workflow in Gando-Solutions/docs. Merge and deploy before the effective date."
+
+      - name: Summary
+        if: always()
+        run: |
+          f="$RUNNER_TEMP/out/$TAG/entry.json"
+          {
+            echo "### $TAG (dry run: $DRY_RUN)"
+            if [ -f "$f" ]; then echo '```json'; cat "$f"; echo '```'; fi
+            echo "If the PR step failed, the archive and the tag already exist: add this entry to \`modules/legal-consent/data/documents.json\` in the app repo by hand."
+          } >> "$GITHUB_STEP_SUMMARY"
