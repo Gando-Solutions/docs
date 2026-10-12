@@ -72,6 +72,14 @@ jobs:
           done
           exit $missing
 
+      - name: Check app repo token
+        if: inputs.dry_run != true
+        env:
+          APP_REPO_TOKEN: ${{ secrets.APP_REPO_TOKEN }}
+        run: |
+          push=$(GH_TOKEN="$APP_REPO_TOKEN" gh api repos/Gando-Solutions/gando --jq .permissions.push 2>&1) || true
+          [ "$push" = true ] || { echo "::error::APP_REPO_TOKEN cannot push to Gando-Solutions/gando (placeholder, revoked, not approved yet or wrong repo)"; exit 1; }
+
       - name: Check the version does not exist yet
         run: |
           if git rev-parse -q --verify "refs/tags/$RELEASE_TAG" >/dev/null; then echo "tag $RELEASE_TAG already exists" >&2; exit 1; fi
