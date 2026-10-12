@@ -118,6 +118,8 @@ jobs:
           aws configure set default.s3.addressing_style path
           dir="$RUNNER_TEMP/out/$TAG"
           prefix=$(jq -r .archiveKey "$dir/entry.json")
+          # a missing bucket or a wrong key gives an empty PutObject error: head-bucket says which (404 bucket missing, 403 wrong key)
+          aws s3api head-bucket --bucket "$BUCKET" >/dev/null || { echo "::error::cannot access the bucket: see the error above (404 = bucket missing, 403 = wrong key)"; exit 1; }
           # Supabase Storage has no Object Lock: refuse to overwrite an existing archive (the immutable GitHub release is the tamper-proof copy)
           if aws s3api head-object --bucket "$BUCKET" --key "$prefix/entry.json" >/dev/null 2>&1; then
             echo "$prefix already archived" >&2; exit 1
