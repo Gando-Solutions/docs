@@ -12,7 +12,8 @@ map="${LEGAL_MAP:-$here/legal-documents.json}"
 [[ "$tag" =~ ^([a-z-]+)-([0-9]{4})-([0-9]{2})-([0-9]{2})$ ]] || { echo "bad tag format: $tag" >&2; exit 1; }
 doc="${BASH_REMATCH[1]}"; date="${BASH_REMATCH[2]}-${BASH_REMATCH[3]}-${BASH_REMATCH[4]}"
 fr_date="${BASH_REMATCH[4]}/${BASH_REMATCH[3]}/${BASH_REMATCH[2]}"
-path=$(jq -er --arg d "$doc" '.[$d]' "$map") || { echo "unknown document: $doc" >&2; exit 1; }
+# a document maps to one file, or to {default, "<date>": file} when an earlier version lived in another file
+path=$(jq -er --arg d "$doc" --arg date "$date" '.[$d] | if type == "object" then (.[$date] // .default) else . end' "$map") || { echo "unknown document: $doc" >&2; exit 1; }
 
 commit=$(git rev-parse "$ref^{commit}")
 git merge-base --is-ancestor "$commit" origin/main || { echo "$commit is not on main" >&2; exit 1; }
