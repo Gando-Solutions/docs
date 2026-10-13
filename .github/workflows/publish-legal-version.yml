@@ -162,6 +162,27 @@ jobs:
           )
           [ "$stored" = "$(jq -r .sha256 "$entry")" ] || { echo "::error::version already recorded with a different hash" >&2; exit 1; }
 
+      # frozen, unlisted Mintlify page of this version: the link customers see (the PDF and hash stay the proof)
+      - name: Publish the version page
+        if: env.DRY_RUN != 'true'
+        run: |
+          set -euo pipefail
+          page="legal-versions/$TAG.mdx"
+          mkdir -p legal-versions
+          # hidden: true keeps the page out of the sidebar and adds noindex, the URL stays reachable
+          awk 'NR==1 && $0=="---" { print; print "hidden: true"; next } { print }' "$RUNNER_TEMP/out/$TAG/source.mdx" > "$RUNNER_TEMP/page.mdx"
+          [ "$(head -2 "$RUNNER_TEMP/page.mdx" | tail -1)" = "hidden: true" ] || { echo "::error::source has no frontmatter" >&2; exit 1; }
+          if git cat-file -e "origin/main:$page" 2>/dev/null; then
+            git show "origin/main:$page" | cmp -s - "$RUNNER_TEMP/page.mdx" || { echo "::error::$page already exists with a different text" >&2; exit 1; }
+            echo "page already published, skipping"; exit 0
+          fi
+          cp "$RUNNER_TEMP/page.mdx" "$page"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$page"
+          git commit -m "docs(legal): publish $TAG"
+          git push origin HEAD:main
+
       # draft, attach the files, then publish: with "release immutability" enabled on the repo, the tag and the files can no longer change after this
       - name: Tag and release
         if: env.DRY_RUN != 'true'
@@ -180,5 +201,5 @@ jobs:
           {
             echo "### $TAG (dry run: $DRY_RUN)"
             if [ -f "$f" ]; then echo '```json'; cat "$f"; echo '```'; fi
-            echo "Order: upload, database row, then the release (the only irreversible step). A failed run can be re-run: an identical upload is skipped and an open PR is reused."
+            echo "Order: upload, database row, version page, then the release (the only irreversible step). A failed run can be re-run: an identical upload is skipped and an open PR is reused."
           } >> "$GITHUB_STEP_SUMMARY"
