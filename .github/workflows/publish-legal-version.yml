@@ -162,12 +162,12 @@ jobs:
           )
           [ "$stored" = "$(jq -r .sha256 "$entry")" ] || { echo "::error::version already recorded with a different hash" >&2; exit 1; }
 
-      # frozen, unlisted Mintlify page of this version: the link customers see (the PDF and hash stay the proof)
+      # frozen, unlisted Mintlify page of this version (staging pages get the staging- prefix, like the release)
       - name: Publish the version page
         if: env.DRY_RUN != 'true'
         run: |
           set -euo pipefail
-          page="legal-versions/$TAG.mdx"
+          page="legal-versions/$RELEASE_TAG.mdx"
           mkdir -p legal-versions
           # hidden: true keeps the page out of the sidebar and adds noindex, the URL stays reachable
           awk 'NR==1 && $0=="---" { print; print "hidden: true"; next } { print }' "$RUNNER_TEMP/out/$TAG/source.mdx" > "$RUNNER_TEMP/page.mdx"
@@ -180,7 +180,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add "$page"
-          git commit -m "docs(legal): publish $TAG"
+          git commit -m "docs(legal): publish $RELEASE_TAG"
           git push origin HEAD:main
 
       # draft, attach the files, then publish: with "release immutability" enabled on the repo, the tag and the files can no longer change after this
