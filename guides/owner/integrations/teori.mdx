@@ -1,0 +1,146 @@
+---
+title: "Intégrer Gando avec Téori"
+sidebarTitle: "Téori"
+description: "Configurez votre compte Gando dans Téori et envoyez vos demandes de caution depuis une location, étape par étape."
+icon: "link"
+---
+
+Vous utilisez **Téori** pour gérer vos véhicules et vos contrats ? Vous pouvez associer votre agence à **Gando** pour proposer une caution en ligne directement depuis une location, sans demander au locataire de bloquer le montant sur son compte.
+
+<Info>
+  **En bref :** la connexion se fait une fois dans les réglages de chaque agence. Ensuite, la demande de caution part du dossier de location Téori ; le locataire reçoit un e-mail et finalise son parcours sécurisé sur Gando.
+</Info>
+
+## Avant de commencer
+
+- Un accès Téori permettant de modifier les **réglages de l'agence**.
+- Un compte professionnel **Gando** actif et son **identifiant de compte** (à ne pas confondre avec une clé API).
+- Les coordonnées du locataire et la réservation concernée dans Téori.
+
+<Tip>
+  Vous gérez plusieurs agences ? Associez Gando à chacune des fiches agences concernées dans Téori.
+</Tip>
+
+## 1. Connecter votre agence Téori à Gando
+
+<Steps>
+  <Step title="Ouvrez les réglages de Téori">
+    Depuis la barre orange en haut de Téori, sélectionnez **Réglages**.
+
+    Dans le menu de gauche, ouvrez **Établissements → Vos agences**. Ce menu est distinct des paramètres généraux et des tarifs.
+  </Step>
+
+  <Step title="Sélectionnez l'agence à connecter">
+    Ouvrez la fiche de l'agence concernée. Vous arrivez sur l'écran **Agence**, qui rassemble notamment ses coordonnées, son logo et ses informations administratives.
+
+    Faites défiler la fiche vers le bas jusqu'à la rubrique **Caution en ligne**.
+  </Step>
+
+  <Step title="Choisissez Gando dans « Caution en ligne »">
+    Dans ce bloc, les options **Swikly** et **Gando** peuvent apparaître.
+
+    Sélectionnez **Gando**, puis renseignez le champ **Id de compte** avec l'identifiant de votre compte Gando. Ne saisissez ni votre adresse e-mail ni votre mot de passe à cet endroit.
+  </Step>
+
+  <Step title="Enregistrez la configuration">
+    Cliquez sur **Valider** en haut de la fenêtre **Agence** pour enregistrer les modifications.
+
+    Rouvrez la fiche agence et vérifiez que **Gando** reste sélectionné et que le champ **Id de compte** est renseigné.
+  </Step>
+</Steps>
+
+<Warning>
+  L'**identifiant de compte** rattache l'agence Téori à son compte Gando. Ne le confondez pas avec une **clé API** et ne le publiez pas dans une capture ou un e-mail destiné à un locataire.
+</Warning>
+
+## 2. Faire une demande de caution depuis une location
+
+<Steps>
+  <Step title="Ouvrez la réservation dans Téori">
+    Depuis **Accueil**, retrouvez la location dans le **Planning Location** ou ouvrez le contrat déjà créé.
+
+    La fiche **Location** présente le contrat, les dates de départ et de retour, le véhicule et les informations de la réservation.
+  </Step>
+
+  <Step title="Retrouvez l'option Gando dans la fiche Location">
+    Dans la partie basse de l'écran **Location**, à proximité des informations de caution, un bouton ou un logo **Gando** apparaît lorsqu'il est proposé pour l'agence.
+
+    Utilisez l'action Gando du dossier pour préparer la demande de caution. Les écrans intermédiaires et leurs libellés peuvent dépendre de la version de Téori.
+  </Step>
+
+  <Step title="Vérifiez les informations avant l'envoi">
+    Contrôlez **le montant de caution prévu**, l'adresse e-mail du locataire et la référence du contrat.
+
+    Déclenchez ensuite l'envoi de la demande depuis le parcours Téori. Vérifiez que le montant communiqué au locataire est celui convenu pour sa location.
+  </Step>
+</Steps>
+
+<Note>
+  La case **« Caution versée »** visible dans la fiche Location ne doit pas être interprétée, à elle seule, comme la preuve d'activation d'une caution Gando. La présence du logo Gando confirme seulement la disponibilité de l'option dans le dossier.
+</Note>
+
+## 3. Ce que reçoit le locataire
+
+Une fois la demande envoyée depuis Téori, le locataire reçoit un e-mail lié à son contrat de location. Dans l'exemple fourni, l'objet indique une **demande de caution en ligne pour valider la réservation**.
+
+L'e-mail contient :
+
+- un bouton **« Régler la caution en ligne »** ;
+- un **lien sécurisé** qui redirige vers le parcours Gando ;
+- le **montant de la caution**, la **référence du contrat** et la **catégorie du véhicule**.
+
+<Info>
+  Le libellé **« Régler la caution en ligne »** est celui de l'e-mail envoyé depuis Téori. Avec Gando, il désigne l'accès au parcours de sécurisation de caution : **le montant de la caution n'est pas automatiquement débité ni bloqué sur le compte du locataire**. Les éventuels frais de sécurisation sont présentés dans le parcours Gando.
+</Info>
+
+## 4. Ce que fait ensuite le locataire sur Gando
+
+<Steps>
+  <Step title="Ouvrir son lien de caution">
+    Il clique sur le bouton reçu par e-mail et accède à la demande correspondant à sa location.
+  </Step>
+
+  <Step title="Compléter les informations demandées">
+    Il renseigne ou vérifie ses informations et suit les étapes de vérification d'éligibilité, notamment la connexion bancaire sécurisée lorsqu'elle est requise.
+  </Step>
+
+  <Step title="Finaliser la sécurisation">
+    Selon les étapes affichées sur Gando, il valide son moyen de paiement et règle les frais de sécurisation applicables. Lorsque son parcours est accepté et terminé, sa caution devient **active**.
+  </Step>
+</Steps>
+
+<Card title="Voir les étapes côté locataire" icon="user" href="/guides/renter/request-deposit">
+  Retrouvez le parcours que suit le client pour valider sa caution Gando.
+</Card>
+
+## 5. Vérifier que la caution est réellement active
+
+Avant de considérer la caution comme constituée, **contrôlez son statut dans votre espace Gando** et vérifiez la correspondance entre la location, le montant et le client. L'envoi de l'e-mail ou la présence d'un bouton Gando dans Téori ne vaut pas confirmation d'activation.
+
+<Card title="Comprendre les statuts des cautions" icon="shield-check" href="/guides/owner/deposit/how-to">
+  Consultez les étapes de création, d'envoi et de suivi d'une caution dans Gando.
+</Card>
+
+## En cas de problème
+
+<AccordionGroup>
+  <Accordion title="Je ne trouve pas Gando dans les réglages de mon agence">
+    Vérifiez que vous êtes dans **Réglages → Établissements → Vos agences**, puis dans la rubrique **Caution en ligne** de la bonne agence. Si Gando n'est pas proposé, contactez votre administrateur Téori ou l'assistance Gando pour vérifier l'accès à l'intégration.
+  </Accordion>
+  <Accordion title="J'ai renseigné l'identifiant, mais Gando n'apparaît pas dans une location">
+    Vérifiez que **Gando** est sélectionné, que l'**Id de compte** est renseigné et que vous avez cliqué sur **Valider**. Rouvrez ensuite la location, et assurez-vous qu'elle dépend bien de l'agence configurée.
+  </Accordion>
+  <Accordion title="Le locataire n'a pas reçu le message">
+    Vérifiez l'adresse e-mail enregistrée dans son dossier et ses courriers indésirables. Utilisez si disponible la fonction de renvoi proposée par Téori ; sinon, demandez l'aide de votre support.
+  </Accordion>
+  <Accordion title="Le locataire a cliqué, mais la caution n'est pas active">
+    Le clic sur le lien n'est qu'une étape. Vérifiez dans Gando si le parcours est **en attente, incomplet ou refusé**. Le locataire doit terminer les étapes requises avant que la caution puisse être considérée comme active.
+  </Accordion>
+  <Accordion title="Peut-on connecter plusieurs agences Téori au même compte Gando ?">
+    La configuration s'effectue **agence par agence**. Pour le rattachement de plusieurs agences à un même compte ou à plusieurs entités, faites confirmer l'organisation souhaitée par l'assistance Gando avant de recopier un identifiant.
+  </Accordion>
+</AccordionGroup>
+
+## Besoin d'aide ?
+
+Pour un problème d'identifiant Gando, d'activation ou de suivi d'une caution, [contactez l'assistance Gando](https://www.gando.app/demande-d-assistance). Pour un écran, un bouton ou un envoi d'e-mail propre à Téori, contactez également votre interlocuteur Téori.

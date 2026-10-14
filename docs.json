@@ -107,7 +107,8 @@
                 "group": "Intégrations",
                 "icon": "puzzle-piece",
                 "pages": [
-                  "guides/owner/integrations/fleetee"
+                  "guides/owner/integrations/fleetee",
+                  "guides/owner/integrations/teori"
                 ]
               },
               {
