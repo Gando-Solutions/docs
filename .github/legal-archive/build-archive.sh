@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 # Builds the archive for one version from a commit of the current checkout.
-# Usage: build-archive.sh <tag> <out-dir> [commit]   (tag format: <doc>-YYYY-MM-DD, doc listed in legal-documents.json)
+# Usage: build-archive.sh <tag> <out-dir> [commit]   (tag format: <doc>-YYYY-MM-DD, or <doc>-YYYY-MM-DD-rN for a revision; doc listed in legal-documents.json)
 # commit defaults to origin/main. The tag itself does not need to exist yet.
-# Env: NODE_PATH + CHROMIUM_PATH for render-pdf.cjs.
+# Env: NODE_PATH + CHROMIUM_PATH for render-pdf.cjs. HASH_ONLY=1 stops after the hash and prints it (no PDF, no renderer needed).
 set -euo pipefail
 
 tag="$1"; out="$2"; ref="${3:-origin/main}"
 here="$(cd "$(dirname "$0")" && pwd)"
 map="${LEGAL_MAP:-$here/legal-documents.json}"
 
-[[ "$tag" =~ ^([a-z-]+)-([0-9]{4})-([0-9]{2})-([0-9]{2})$ ]] || { echo "bad tag format: $tag" >&2; exit 1; }
+[[ "$tag" =~ ^([a-z-]+)-([0-9]{4})-([0-9]{2})-([0-9]{2})(-r[0-9]+)?$ ]] || { echo "bad tag format: $tag" >&2; exit 1; }
 doc="${BASH_REMATCH[1]}"; date="${BASH_REMATCH[2]}-${BASH_REMATCH[3]}-${BASH_REMATCH[4]}"
 fr_date="${BASH_REMATCH[4]}/${BASH_REMATCH[3]}/${BASH_REMATCH[2]}"
 # a document maps to one file, or to {default, "<date>": file} when an earlier version lived in another file
@@ -32,6 +32,7 @@ if grep -qE '<[A-Z][A-Za-z]*[ />]' "$dir/source.mdx"; then
 fi
 
 sha256=$(sha256sum "$dir/source.mdx" | cut -d' ' -f1)
+if [ -n "${HASH_ONLY:-}" ]; then echo "$sha256"; exit 0; fi
 echo "$sha256  source.mdx" > "$dir/sha256.txt"
 (cd "$dir" && node "$here/render-pdf.cjs" .)
 

@@ -1,6 +1,8 @@
 # Place at .github/workflows/publish-legal-version.yml in Gando-Solutions/docs.
 # Scripts live in .github/legal-archive/ (build-archive.sh, render-pdf.cjs, legal-documents.json).
 # One button: Actions > Publish legal version > Run workflow. It archives the text, records the version in the app database, and publishes the release.
+# Pick the environment in the form (staging, preview or production): one run per environment. A text corrected for a date that already
+# has a version is published as <doc>-<date>-r2, -r3, ... automatically (choose-revision.sh).
 name: Publish legal version
 
 on:
@@ -13,6 +15,12 @@ on:
         required: true
       effective_date:
         description: Effective date, YYYY-MM-DD
+        required: true
+      environment:
+        description: Environment to publish to
+        type: choice
+        options: [staging, preview, production]
+        default: staging
         required: true
       dry_run:
         description: Build only, no upload, no tag, no PR
@@ -30,10 +38,11 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     env:
-      TAG: ${{ inputs.document }}-${{ inputs.effective_date }}
-      # LEGAL_MODE secret: production (plain secret names) or staging (secret names prefixed STAGING_)
-      MODE: ${{ secrets.LEGAL_MODE }}
-      SECRET_PREFIX: ${{ secrets.LEGAL_MODE == 'production' && '' || format('{0}_', secrets.LEGAL_MODE) }}
+      # version name before the revision is chosen; TAG (final name) and RELEASE_TAG are set by the steps below
+      BASE_TAG: ${{ inputs.document }}-${{ inputs.effective_date }}
+      # production uses the plain secret names, staging and preview the STAGING_ and PREVIEW_ prefixed ones
+      MODE: ${{ inputs.environment }}
+      SUPPORT_SITE_URL: https://support.gando.app
       DRY_RUN: ${{ inputs.dry_run }}
       GH_TOKEN: ${{ github.token }}
     steps:
@@ -42,17 +51,17 @@ jobs:
           fetch-depth: 0
           ref: main
 
-      # non-production releases get the mode as a tag prefix, so they never collide with production ones
-      - name: Resolve mode
+      # non-production releases get the environment as a tag prefix, so they never collide with production ones
+      - name: Resolve the environment
         run: |
-          [[ "$MODE" =~ ^[a-z0-9_]+$ ]] || { echo "LEGAL_MODE secret is empty or invalid" >&2; exit 1; }
           case "$MODE" in
-            production) prefix="" ;;
-            staging) prefix="$MODE-" ;;
-            *) echo "LEGAL_MODE must be production or staging" >&2; exit 1 ;;
+            production) prefix=""; secret_prefix=""; pre=false ;;
+            staging|preview) prefix="$MODE-"; secret_prefix="${MODE}_"; pre=true ;;
+            *) echo "unknown environment: $MODE" >&2; exit 1 ;;
           esac
-          echo "RELEASE_TAG=$prefix$TAG" >> "$GITHUB_ENV"
-          echo "PRERELEASE=$([ "$MODE" = production ] && echo false || echo true)" >> "$GITHUB_ENV"
+          echo "RELEASE_PREFIX=$prefix" >> "$GITHUB_ENV"
+          echo "SECRET_PREFIX=$secret_prefix" >> "$GITHUB_ENV"
+          echo "PRERELEASE=$pre" >> "$GITHUB_ENV"
 
       # fail before anything irreversible (upload, immutable release) if a secret is missing
       - name: Check secrets
@@ -79,9 +88,20 @@ jobs:
           psql "$DB_URL" -v ON_ERROR_STOP=1 -q -t -A -c "select count(*) from legal_document_versions" >/dev/null \
             || { echo "::error::cannot read legal_document_versions with the database URL (wrong user, password or host, or the migration is not deployed)"; exit 1; }
 
-      - name: Check the version does not exist yet
+      # a corrected text for a date that already has a version becomes -r2, -r3, ...; the same text reuses the name (a re-run)
+      - name: Choose the version name
+        env:
+          DB_URL: ${{ inputs.dry_run != true && secrets[format('{0}LEGAL_DB_URL', env.SECRET_PREFIX)] || '' }}
         run: |
-          if git rev-parse -q --verify "refs/tags/$RELEASE_TAG" >/dev/null; then echo "tag $RELEASE_TAG already exists" >&2; exit 1; fi
+          set -euo pipefail
+          sha=$(HASH_ONLY=1 .github/legal-archive/build-archive.sh "$BASE_TAG" "$RUNNER_TEMP/hash" "$(git rev-parse HEAD)")
+          tag=$(RELEASE_PREFIX="$RELEASE_PREFIX" DB_URL="$DB_URL" .github/legal-archive/choose-revision.sh "$BASE_TAG" "$sha")
+          echo "TAG=$tag" >> "$GITHUB_ENV"
+          echo "RELEASE_TAG=$RELEASE_PREFIX$tag" >> "$GITHUB_ENV"
+          if git rev-parse -q --verify "refs/tags/$RELEASE_PREFIX$tag" >/dev/null; then
+            if [ "$DRY_RUN" = true ]; then echo "::notice::$RELEASE_PREFIX$tag is already published with this text"
+            else echo "::error::$RELEASE_PREFIX$tag is already published with this text: nothing to do" >&2; exit 1; fi
+          fi
 
       - uses: actions/setup-node@v4
         with:
@@ -189,17 +209,19 @@ jobs:
         run: |
           dir="$RUNNER_TEMP/out/$TAG"
           [ "$PRERELEASE" = true ] && pre=(--prerelease) || pre=()
+          notes="$(jq -r '"sha256: \(.sha256)\ncommit: \(.commit)"' "$dir/entry.json")"$'\n'"page: $SUPPORT_SITE_URL/legal-versions/$RELEASE_TAG"
           gh release create "$RELEASE_TAG" --draft "${pre[@]}" --target "$(jq -r .commit "$dir/entry.json")" --title "$RELEASE_TAG" \
-            --notes "$(jq -r '"sha256: \(.sha256)\ncommit: \(.commit)"' "$dir/entry.json")" \
+            --notes "$notes" \
             "$dir/source.mdx" "$dir/sha256.txt" "$dir/rendered.pdf" "$dir/entry.json"
           gh release edit "$RELEASE_TAG" --draft=false
 
       - name: Summary
         if: always()
         run: |
-          f="$RUNNER_TEMP/out/$TAG/entry.json"
+          f="$RUNNER_TEMP/out/${TAG:-$BASE_TAG}/entry.json"
           {
-            echo "### $TAG (dry run: $DRY_RUN)"
+            echo "### ${TAG:-$BASE_TAG} on **$MODE** (dry run: $DRY_RUN)"
+            [ -z "${RELEASE_TAG:-}" ] || echo "Page: $SUPPORT_SITE_URL/legal-versions/$RELEASE_TAG"
             if [ -f "$f" ]; then echo '```json'; cat "$f"; echo '```'; fi
             echo "Order: upload, database row, version page, then the release (the only irreversible step). A failed run can be re-run: an identical upload is skipped and an open PR is reused."
           } >> "$GITHUB_STEP_SUMMARY"
