@@ -8,6 +8,8 @@
 # Existing revisions come from the database when DB_URL is set (it also sees a run that failed before the release),
 # otherwise from the git tags of RELEASE_PREFIX (dry run without database access).
 set -euo pipefail
+# a failing psql or gh inside existing() must stop the script, not read as "no version yet"
+shopt -s inherit_errexit
 
 base="$1"; sha="$2"
 [[ "$base" =~ ^[a-z-]+-[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] || { echo "bad base tag: $base" >&2; exit 1; }
@@ -19,11 +21,13 @@ existing() {
       -c "SELECT version, sha256 FROM legal_document_versions WHERE version = '$base' OR version LIKE '$base-r%'"
   else
     for t in $(git tag -l "$prefix$base" "$prefix$base-r*"); do
-      echo "${t#"$prefix"} $(gh release download "$t" -p sha256.txt -O - | cut -d' ' -f1)"
+      hash=$(gh release download "$t" -p sha256.txt -O - | cut -d' ' -f1)
+      echo "${t#"$prefix"} $hash"
     done
   fi
 }
 
+rows=$(existing)
 latest_n=0; latest_sha=""
 while read -r version stored; do
   [ -n "$version" ] || continue
@@ -31,7 +35,7 @@ while read -r version stored; do
   elif [[ "$version" =~ ^"$base"-r([0-9]+)$ ]]; then n="${BASH_REMATCH[1]}"
   else continue; fi
   if [ "$n" -gt "$latest_n" ]; then latest_n="$n"; latest_sha="$stored"; fi
-done < <(existing)
+done <<<"$rows"
 
 if [ "$latest_n" -eq 0 ]; then echo "no version for this date yet: $base" >&2; echo "$base"; exit 0; fi
 latest="$base"; [ "$latest_n" -gt 1 ] && latest="$base-r$latest_n"

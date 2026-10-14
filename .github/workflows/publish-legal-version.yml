@@ -182,7 +182,7 @@ jobs:
           )
           [ "$stored" = "$(jq -r .sha256 "$entry")" ] || { echo "::error::version already recorded with a different hash" >&2; exit 1; }
 
-      # frozen, unlisted Mintlify page of this version (staging pages get the staging- prefix, like the release)
+      # frozen, unlisted Mintlify page of this version (staging and preview pages get the environment prefix, like the release)
       - name: Publish the version page
         if: env.DRY_RUN != 'true'
         run: |
@@ -221,7 +221,7 @@ jobs:
           f="$RUNNER_TEMP/out/${TAG:-$BASE_TAG}/entry.json"
           {
             echo "### ${TAG:-$BASE_TAG} on **$MODE** (dry run: $DRY_RUN)"
-            [ -z "${RELEASE_TAG:-}" ] || echo "Page: $SUPPORT_SITE_URL/legal-versions/$RELEASE_TAG"
+            [ -z "${RELEASE_TAG:-}" ] || [ "$DRY_RUN" = true ] || echo "Page: $SUPPORT_SITE_URL/legal-versions/$RELEASE_TAG"
             if [ -f "$f" ]; then echo '```json'; cat "$f"; echo '```'; fi
             echo "Order: upload, database row, version page, then the release (the only irreversible step). A failed run can be re-run: an identical upload is skipped and an open PR is reused."
           } >> "$GITHUB_STEP_SUMMARY"
