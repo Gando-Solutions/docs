@@ -3,6 +3,9 @@
     "default": "conditions-generales-d-utilisation-et-de-ventes-pour-les-clients-finaux.mdx",
     "2026-06-28": "terms-policy/cguv.mdx"
   },
-  "operator-terms": "conditions-generales-d-utilisation-et-de-ventes-pour-les-loueurs.mdx",
+  "operator-terms": {
+    "default": "conditions-generales-d-utilisation-et-de-ventes-pour-les-loueurs.mdx",
+    "2026-06-28": "terms-policy/cguv.mdx"
+  },
   "privacy": "terms-policy/policy.mdx"
 }
