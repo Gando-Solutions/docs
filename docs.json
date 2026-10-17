@@ -108,7 +108,8 @@
                 "icon": "puzzle-piece",
                 "pages": [
                   "guides/owner/integrations/fleetee",
-                  "guides/owner/integrations/teori"
+                  "guides/owner/integrations/teori",
+                  "guides/owner/integrations/cityrent"
                 ]
               },
               {
