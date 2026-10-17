@@ -5,49 +5,52 @@ icon: "user-police"
 sidebarTitle: "Politique de confidentialité"
 ---
 
-**Dernière mise à jour : 28 mai 2026**
+**Dernière mise à jour : 2 novembre 2026**
 
-La présente politique décrit comment **Gando** traite vos données personnelles lorsque vous utilisez nos services de sécurisation de caution sans blocage de fonds, que vous soyez **loueur** (client professionnel) ou **client final** (locataire payant la sécurisation).
+La présente politique décrit comment **Gando** traite vos données personnelles lorsque vous utilisez nos services de sécurisation de caution sans blocage de fonds, y compris lorsque la caution est réglée avec la réservation (paiement combiné), que vous soyez **loueur** (client professionnel) ou **client final** (locataire payant la sécurisation).
 
-Nous avons rédigé ce document pour qu'il soit lisible. Si une formulation reste obscure, écrivez-nous à [dpo@gando.app](mailto:dpo@gando.app).
+Nous avons rédigé ce document pour qu'il soit lisible. Si une formulation reste obscure, écrivez-nous à [<u>dpo@gando.app</u>](mailto:dpo@gando.app).
 
 ---
 
-## 1. Responsable du traitement
+## **1. Responsable du traitement**
 
 **Gando**, société par actions simplifiée (SAS) immatriculée au RCS de Paris, dont le siège social est situé à 3 CHEMIN DE LA PORTE VERTE 77144 MONTEVRAIN.
 
-- **Contact général :** [contact@gando.app](mailto:contact@gando.app)
-- **Délégué à la protection des données (DPO) :** [dpo@gando.app](mailto:dpo@gando.app)
-- **Autorité de contrôle :** Commission Nationale de l'Informatique et des Libertés (CNIL), [www.cnil.fr](https://www.cnil.fr)
+- **Contact général :** [<u>contact@gando.app</u>](mailto:contact@gando.app)
+- **Délégué à la protection des données (DPO) :** [<u>dpo@gando.app</u>](mailto:dpo@gando.app)
+- **Autorité de contrôle :** Commission Nationale de l'Informatique et des Libertés (CNIL), [<u>www.cnil.fr</u>](http://www.cnil.fr)
 
 ---
 
-## 2. Données que nous collectons
+## **2. Données que nous collectons**
 
-### 2.1 Données collectées directement auprès de vous
+### **2.1 Données collectées directement auprès de vous**
 
-| Catégorie | Exemples | Concerne |
+| **Catégorie** | **Exemples** | **Concerne** |
 | :-- | :-- | :-- |
 | Identité | Nom, prénom, date de naissance, nationalité | Client final, loueur |
 | Coordonnées | E-mail, téléphone, adresse postale | Client final, loueur |
 | Données de connexion | Identifiant, mot de passe (haché), tokens OAuth | Loueur |
 | Données contractuelles | Montant et durée de la caution, références de location | Client final, loueur |
 | Données de paiement | Empreinte 3DS (token de carte non-bloquant), IBAN pour virement loueur | Client final, loueur |
+| Facturation du paiement combiné | Client final : nom, prénom, adresse postale. Loueur : dénomination, adresse, SIRET, numéro de TVA | Client final, loueur |
+| Empreinte d'identité bancaire | Empreinte (hachage) de l'e-mail, du prénom, du nom et de la date de naissance | Client final |
 | Justificatifs (en cas d'encaissement) | Contrat de location, photos, devis, état des lieux | Loueur |
 | Pièces KYC/KYB (selon LCB-FT) | Pièce d'identité, Kbis, justificatif de domicile | Loueur, client final si seuils atteints |
 
-### 2.2 Données collectées via des tiers (avec votre consentement)
+### **2.2 Données collectées via des tiers (avec votre consentement)**
 
-| Catégorie | Source | Concerne |
+| **Catégorie** | **Source** | **Concerne** |
 | :-- | :-- | :-- |
 | Données bancaires (open banking) | **Bridge**, prestataire agréé DSP2 par l'ACPR | Client final |
 | Données de paiement et anti-fraude | **Inflow** (PSP), **Stripe** (cautions en cours de migration) | Client final, loueur |
+| Date d'expiration de la carte | Prestataire de paiement, lorsqu'il la fournit | Client final |
 | Données transmises par le loueur | Référence du locataire, montant, durée de la location | Client final |
 
-### 2.3 Données collectées automatiquement
+### **2.3 Données collectées automatiquement**
 
-| Catégorie | Exemples |
+| **Catégorie** | **Exemples** |
 | :-- | :-- |
 | Données de navigation | Adresse IP, type de navigateur, pages visitées, horodatage |
 | Cookies et traceurs | Cf. section 11 |
@@ -55,9 +58,9 @@ Nous avons rédigé ce document pour qu'il soit lisible. Si une formulation rest
 
 ---
 
-## 3. Finalités, bases légales et durées de conservation
+## **3. Finalités, bases légales et durées de conservation**
 
-| Finalité | Base légale (RGPD) | Durée de conservation |
+| **Finalité** | **Base légale (RGPD)** | **Durée de conservation** |
 | :-- | :-- | :-- |
 | Création et gestion du compte loueur | Exécution du contrat (Art. 6.1.b) | Durée du compte \+ 5 ans (preuve) |
 | Sécurisation de la caution (client final) | Exécution du contrat (Art. 6.1.b) | Durée de la caution \+ 5 ans |
@@ -66,6 +69,9 @@ Nous avons rédigé ce document pour qu'il soit lisible. Si une formulation rest
 | Recouvrement amiable automatisé | Exécution du contrat | 5 ans après extinction de la créance |
 | Recouvrement contentieux / judiciaire | Intérêt légitime (Art. 6.1.f) \+ obligation légale | 5 ans après clôture du dossier |
 | Lutte contre le blanchiment (LCB-FT) | Obligation légale (Art. L561-12 CMF) | 5 ans après fin de la relation d'affaires |
+| Paiement combiné : encaissement pour le compte du loueur, émission des factures et avoirs | Exécution du contrat (Art. 6.1.b) + obligation légale (facturation) | Pièces comptables : 10 ans • Autres données : durée de la caution + 5 ans |
+| Réutilisation de la connexion bancaire entre cautions (cf. §5.5) | Consentement (Art. 6.1.a) | Jusqu'à l'expiration de l'autorisation bancaire ou la déconnexion de votre banque |
+| Prévention de la fraude liée à la réutilisation de la connexion bancaire | Intérêt légitime (Art. 6.1.f) | 5 ans |
 | Facturation et comptabilité | Obligation légale (Code de commerce) | 10 ans |
 | Prospection commerciale (loueurs) | Intérêt légitime (Art. 6.1.f) | 3 ans après dernier contact |
 | Envoi d'e-mails transactionnels | Exécution du contrat | Durée de la relation |
@@ -76,13 +82,15 @@ Nous avons rédigé ce document pour qu'il soit lisible. Si une formulation rest
 
 ---
 
-## 4. Catégories de destinataires
+## **4. Catégories de destinataires**
 
 Vos données peuvent être partagées avec les destinataires suivants, **uniquement dans la mesure nécessaire** à la finalité concernée :
 
 - **Le loueur** ayant créé la caution : identité, statut de la caution, et — uniquement en cas d'activation de la garantie Gando — justificatifs liés à l'encaissement.
 - **Stripe** (Prestataire de Services de Paiement, anciennement Stripe pour les cautions en cours de migration) : exécution des paiements, gestion des empreintes 3DS, des virements et de l'anti-fraude.
-- **Bridge** (Agrégateur agréé DSP2 par l'ACPR) : connexion bancaire et récupération des données nécessaires au scoring.
+- **Bridge** (Agrégateur agréé DSP2 par l'ACPR) : connexion bancaire et récupération des données nécessaires au scoring, y compris lors de la réutilisation d'une connexion existante (cf. §5.5).
+- **Le loueur**, dans le cadre d'un paiement combiné : factures et avoirs émis en son nom à votre attention (identité, adresse, montants). Il ne reçoit jamais le résultat de l'analyse de solvabilité d'une caution conclue avec un autre loueur.
+- **Pennylane** : émission des factures et avoirs des frais de sécurisation Gando dans le cadre d'un paiement combiné, et tenue de la comptabilité de Gando.
 - **Brevo** : envoi des e-mails transactionnels.
 - **PostHog** : mesure d'audience (données pseudonymisées).
 - **AWS S3** : stockage chiffré des justificatifs.
@@ -95,11 +103,11 @@ Chaque sous-traitant agit sur la base d'un contrat conforme à l'article 28 du R
 
 ---
 
-## 5. Analyse de solvabilité via open banking et décision automatisée
+## **5. Analyse de solvabilité via open banking et décision automatisée**
 
-Cette section concerne les **clients finaux** uniquement.
+Cette section concerne les **clients finaux** uniquement. Elle ne s'applique pas aux cautions sécurisées sans analyse de solvabilité (offre Swift, ou offre Custom sans analyse) : aucune connexion bancaire n'est alors demandée.
 
-### 5.1 En quoi consiste l'analyse
+### **5.1 En quoi consiste l'analyse**
 
 Lorsque vous initiez une caution Gando, nous procédons à une **analyse automatisée de votre solvabilité** afin d'évaluer le risque de non-paiement en cas d'encaissement. Cette analyse permet de garantir la caution au loueur sans bloquer de fonds sur votre compte.
 
@@ -110,7 +118,7 @@ L'analyse repose sur les données suivantes, récupérées via **Bridge** (agré
 - Solde moyen et incidents bancaires
 - Détection de signaux de fraude
 
-### 5.2 Logique du scoring
+### **5.2 Logique du scoring**
 
 Un algorithme propriétaire classe votre profil en **quatre niveaux** :
 
@@ -119,7 +127,7 @@ Un algorithme propriétaire classe votre profil en **quatre niveaux** :
 - **Sensible** — caution acceptée avec vigilance renforcée
 - **Élevé** — caution refusée
 
-### 5.3 Vos droits (Article 22 RGPD)
+### **5.3 Vos droits (Article 22 RGPD)**
 
 Cette analyse est une **décision individuelle automatisée**. À ce titre, vous disposez des droits suivants :
 
@@ -127,20 +135,30 @@ Cette analyse est une **décision individuelle automatisée**. À ce titre, vous
 - **Droit d'exprimer votre point de vue** et de fournir des éléments contextuels.
 - **Droit de contester la décision**.
 
-Pour exercer ces droits, écrivez à [dpo@gando.app](mailto:dpo@gando.app). Une réponse vous sera apportée sous **30 jours**.
+Pour exercer ces droits, écrivez à [<u>dpo@gando.app</u>](mailto:dpo@gando.app). Une réponse vous sera apportée sous **30 jours**.
 
-### 5.4 Conservation
+### **5.4 Conservation**
 
 - Les **données bancaires brutes** issues de l'open banking sont supprimées **90 jours** après la décision de scoring.
 - Seul le **résultat agrégé** (niveau de risque, sans détail de transaction) est conservé 5 ans, pour preuve et conformément à nos obligations LCB-FT.
 
+### **5.5 Réutilisation de votre connexion bancaire**
+
+Lorsque vous avez connecté votre banque pour une caution Gando, cette connexion peut être réutilisée pour une caution suivante, y compris chez un autre loueur, tant que l'autorisation donnée à votre banque est valide. Vous n'avez alors pas à reconnecter votre banque.
+
+- **Conditions** : la connexion n'est proposée que si votre e-mail, votre prénom, votre nom et votre date de naissance sont identiques à ceux de la personne qui l'a établie. Nous comparons une empreinte de ces données, jamais les données en clair. Sans correspondance exacte, une nouvelle connexion vous est demandée et aucune information sur une connexion existante n'est révélée.
+- **Analyse** : chaque caution donne lieu à une nouvelle analyse, sur des données actualisées.
+- **Cloisonnement** : chaque loueur ne reçoit que le résultat de l'analyse de sa propre caution. Il n'a accès ni à vos autres cautions, ni à l'identité des autres loueurs.
+- **Prévention de la fraude** : nous surveillons les réutilisations (changement de téléphone ou de carte, cautions rapprochées chez plusieurs loueurs) et pouvons demander une vérification complémentaire.
+- **Déconnexion** : vous pouvez à tout moment utiliser « Déconnecter ma banque » dans le parcours de caution, ou écrire à [<u>dpo@gando.app</u>](mailto:dpo@gando.app). Nous demandons alors à Bridge de supprimer l'accès, et votre banque ne vous est plus proposée. Vos cautions en cours et passées ne sont pas modifiées et restent conservées selon les durées de la section 3.
+
 ---
 
-## 6. Recouvrement et avance Gando
+## **6. Recouvrement et avance Gando**
 
 Cette section concerne les **clients finaux** dont la caution fait l'objet d'un encaissement par le loueur en cas de dommage.
 
-### 6.1 Phase 1 — Recouvrement amiable automatisé (12 jours)
+### **6.1 Phase 1 — Recouvrement amiable automatisé (12 jours)**
 
 Lorsque le loueur initie un encaissement :
 
@@ -149,7 +167,7 @@ Lorsque le loueur initie un encaissement :
 
 **Base légale :** exécution du contrat (Art. 6.1.b RGPD).
 
-### 6.2 Phase 2 — Activation de la garantie Gando
+### **6.2 Phase 2 — Activation de la garantie Gando**
 
 Si les tentatives de la phase 1 échouent, Gando peut avancer les fonds au loueur. Dans ce cas :
 
@@ -159,7 +177,7 @@ Si les tentatives de la phase 1 échouent, Gando peut avancer les fonds au loueu
 
 **Base légale :** intérêt légitime de Gando à recouvrer la créance après avance (Art. 6.1.f RGPD).
 
-### 6.3 Phase 3 — Recouvrement contentieux
+### **6.3 Phase 3 — Recouvrement contentieux**
 
 En cas d'échec persistant, votre dossier peut être transmis à :
 
@@ -172,26 +190,26 @@ En cas d'échec persistant, votre dossier peut être transmis à :
 
 **Base légale :** intérêt légitime de Gando \+ obligation légale en cas de procédure judiciaire.
 
-### 6.4 Conservation des dossiers de recouvrement
+### **6.4 Conservation des dossiers de recouvrement**
 
 Les dossiers de recouvrement sont conservés **5 ans** après l'extinction de la créance ou la clôture du dossier judiciaire (délai de prescription civile, Art. 2224 du Code civil).
 
 ---
 
-## 7. Transferts de données hors Union européenne
+## **7. Transferts de données hors Union européenne**
 
 La majorité de nos prestataires hébergent vos données dans l'Union européenne. Certains traitements impliquent toutefois un transfert hors UE :
 
-| Prestataire | Pays | Garanties |
+| **Prestataire** | **Pays** | **Garanties** |
 | :-- | :-- | :-- |
 | Stripe | États-Unis | Clauses contractuelles types (CCT) de la Commission européenne \+ Data Privacy Framework |
 | PostHog (option Cloud US) | États-Unis | CCT \+ pseudonymisation |
 
-Vous pouvez obtenir une copie de ces garanties en écrivant à [dpo@gando.app](mailto:dpo@gando.app).
+Vous pouvez obtenir une copie de ces garanties en écrivant à [<u>dpo@gando.app</u>](mailto:dpo@gando.app).
 
 ---
 
-## 8. Sécurité
+## **8. Sécurité**
 
 Nous mettons en œuvre des mesures techniques et organisationnelles adaptées au risque, notamment :
 
@@ -206,7 +224,7 @@ En cas de **violation de données** susceptible d'engendrer un risque pour vos d
 
 ---
 
-## 9. Vos droits
+## **9. Vos droits**
 
 Conformément au RGPD et à la loi Informatique et Libertés, vous disposez des droits suivants :
 
@@ -220,15 +238,15 @@ Conformément au RGPD et à la loi Informatique et Libertés, vous disposez des 
 - **Droit de définir des directives** relatives au sort de vos données après votre décès
 - **Droits spécifiques en matière de décision automatisée** (cf. §5.3)
 
-### Comment exercer vos droits
+### **Comment exercer vos droits**
 
-Écrivez à [dpo@gando.app](mailto:dpo@gando.app) en précisant votre demande. Nous pourrons vous demander une preuve d'identité en cas de doute raisonnable. Nous répondons dans un délai d'**un mois** (prorogeable de deux mois pour les demandes complexes).
+Écrivez à [<u>dpo@gando.app</u>](mailto:dpo@gando.app) en précisant votre demande. Nous pourrons vous demander une preuve d'identité en cas de doute raisonnable. Nous répondons dans un délai d'**un mois** (prorogeable de deux mois pour les demandes complexes).
 
-Si vous estimez que vos droits ne sont pas respectés, vous pouvez introduire une **réclamation auprès de la CNIL** : [www.cnil.fr/fr/plaintes](https://www.cnil.fr/fr/plaintes).
+Si vous estimez que vos droits ne sont pas respectés, vous pouvez introduire une **réclamation auprès de la CNIL** : [<u>www.cnil.fr/fr/plaintes</u>](http://www.cnil.fr/fr/plaintes).
 
 ---
 
-## 10. Conservation des données après clôture du compte
+## **10. Conservation des données après clôture du compte**
 
 À la clôture de votre compte :
 
@@ -239,7 +257,7 @@ Si vous estimez que vos droits ne sont pas respectés, vous pouvez introduire un
 
 ---
 
-## 11. Cookies et traceurs
+## **11. Cookies et traceurs**
 
 Nous utilisons des cookies pour :
 
@@ -251,27 +269,27 @@ Vous pouvez gérer vos préférences à tout moment via le bandeau de consenteme
 
 ---
 
-## 12. Mineurs
+## **12. Mineurs**
 
-Nos services s'adressent exclusivement aux **personnes majeures** (18 ans révolus). Nous ne collectons pas sciemment de données concernant des mineurs. Si vous estimez qu'un mineur nous a transmis des données, contactez-nous immédiatement à [dpo@gando.app](mailto:dpo@gando.app).
+Nos services s'adressent exclusivement aux **personnes majeures** (18 ans révolus). Nous ne collectons pas sciemment de données concernant des mineurs. Si vous estimez qu'un mineur nous a transmis des données, contactez-nous immédiatement à [<u>dpo@gando.app</u>](mailto:dpo@gando.app).
 
 ---
 
-## 13. Modifications de la présente politique
+## **13. Modifications de la présente politique**
 
 Nous pouvons être amenés à modifier cette politique pour refléter une évolution réglementaire, un nouveau service ou un changement de prestataire.
 
 - Toute modification substantielle vous sera notifiée par e-mail et/ou via un bandeau dans l'application au moins **30 jours avant** son entrée en vigueur.
-- L'historique des versions est disponible sur demande à [dpo@gando.app](mailto:dpo@gando.app).
+- L'historique des versions est disponible sur demande à [<u>dpo@gando.app</u>](mailto:dpo@gando.app).
 
 ---
 
-## 14. Contact
+## **14. Contact**
 
-| Sujet | Contact |
+| **Sujet** | **Contact** |
 | :-- | :-- |
-| Questions générales | [contact@gando.app](mailto:contact@gando.app) |
-| Données personnelles & exercice des droits | [dpo@gando.app](mailto:dpo@gando.app) |
-| Réclamation auprès de l'autorité de contrôle | [CNIL — www.cnil.fr](https://www.cnil.fr/fr/plaintes) |
+| Questions générales | [<u>contact@gando.app</u>](mailto:contact@gando.app) |
+| Données personnelles & exercice des droits | [<u>dpo@gando.app</u>](mailto:dpo@gando.app) |
+| Réclamation auprès de l'autorité de contrôle | [<u>CNIL — </u>](https://www.cnil.fr/fr/plaintes)<u>[www.cnil.fr](http://www.cnil.fr)</u> |
 
 Adresse postale : 3 CHEMIN DE LA PORTE VERTE, 77144 MONTEVRAIN
