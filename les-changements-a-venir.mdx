@@ -6,7 +6,7 @@ title: "Les changements à venir"
 
 ## **Pourquoi cette mise à jour**
 
-Trois nouveautés de Gando entrent dans les CGUV.
+Trois nouveautés de Gando entrent dans les CGUV et dans la politique de confidentialité.
 
 La première est **une nouvelle offre, Gando Swift**, et plus largement la possibilité de sécuriser une caution sans analyse de solvabilité. Les offres deviennent Flex, Custom et Swift.
 
@@ -22,11 +22,13 @@ Nous en profitons pour scinder nos CGUV en deux documents plus lisibles, l'un po
 | :-- | :-- | :-- |
 | CGUV loueurs et clients finaux | 2, 3, 5, 6, 7, 8, 10 et 13 | Prise en compte des offres Flex, Custom et Swift et du parcours sans analyse de solvabilité : plafonds, durées, frais et garantie selon l'offre. |
 | CGUV loueurs et clients finaux | 28 (nouveau) | Offres et parcours sans analyse de solvabilité : grille des offres, changement d'offre, validité de la carte, encaissement et recouvrement, absence de garantie Gando. |
-| CGUV loueurs et clients finaux | 29 (nouveau) | Paiement combiné : mandat d'encaissement, facturation au nom du loueur, annulation et remboursement. |
+| CGUV loueurs et clients finaux | 29 (nouveau) | Paiement combiné : mandat d'encaissement, facturation au nom du loueur sur la base de la ventilation de TVA qu'il transmet et dont il reste responsable, annulation et remboursement. |
 | CGUV loueurs | 29 e) et f) | Réserve d'annulation sur le solde du loueur et sommes non reprises après une annulation. |
 | CGUV loueurs et clients finaux | 3, 7 et 30 (nouveau) | Réutilisation de la connexion bancaire entre cautions, conditions de correspondance, cloisonnement entre loueurs et déconnexion de la banque. |
 | CGUV loueurs et clients finaux | 20 | Données traitées pour le paiement combiné et la réutilisation de la connexion bancaire. |
 | CGUV loueurs | Annexe 2 | Honoraires de recouvrement des offres Swift et Custom. |
+| Politique de confidentialité | Introduction, 2, 3 et 4 | Données, finalités, bases légales, durées de conservation et destinataires liés au paiement combiné, à la réutilisation de la connexion bancaire et au contrôle de validité de la carte. |
+| Politique de confidentialité | 5 et 5.5 (nouveau) | Cautions sans analyse de solvabilité ; réutilisation de la connexion bancaire, cloisonnement entre loueurs, prévention de la fraude et déconnexion. |
 
 ## **Ce qui change pour les loueurs**
 
@@ -51,7 +53,7 @@ Pour les cautions de plus de 60 jours, une carte qui expire avant la fin de la c
 
 Votre client règle en un seul paiement le prix de sa réservation et les frais de sécurisation de sa caution. Vous devez avoir une adresse de facturation complète en France métropolitaine, à Monaco ou dans l'un des cinq DOM.
 
-Gando encaisse le prix de la réservation en votre nom et pour votre compte, puis vous le reverse, déduction faite de la part des frais du prestataire de paiement qui correspond à la réservation. Gando émet aussi en votre nom la facture de réservation à votre client, avec votre TVA : vous retrouvez ces factures et avoirs dans votre espace, et vous restez redevable de cette TVA.
+Gando encaisse le prix de la réservation en votre nom et pour votre compte, puis vous le reverse, déduction faite de la part des frais du prestataire de paiement qui correspond à la réservation. Gando émet aussi en votre nom la facture de réservation à votre client. Pour cela, vous transmettez dans l'appel API la ventilation de TVA de votre réservation, ligne par ligne, telle que votre outil l'a calculée : libellé, montant HT, taux et TVA, avec le motif de toute ligne à 0 % (franchise en base, Guyane ou Mayotte, taxe de séjour). Gando reprend ces lignes telles quelles sur la facture et refuse un appel dont les montants ne sont pas cohérents, sans jamais les corriger. Vous restez seul responsable de ces taux et redevable de la TVA de la réservation. Vous retrouvez ces factures et avoirs dans votre espace.
 
 À la demande de votre client, vous pouvez annuler un paiement combiné tant que ses cautions sont actives et n'ont fait l'objet d'aucun encaissement. Votre client est alors intégralement remboursé, et Gando reprend la part réservation qui vous a été reversée.
 
@@ -376,7 +378,9 @@ Ajout :
 >
 > Le Loueur donne mandat à la Société, qui l'accepte, d'émettre en son nom et pour son compte les factures et avoirs relatifs au prix de la réservation à destination du Locataire. Ces documents portent la mention « Facture émise par Gando au nom et pour le compte de », suivie de la dénomination du Loueur, et suivent une numérotation propre au Loueur. Le Loueur s'engage à communiquer à la Société des informations exactes et à jour : dénomination, adresse, numéro SIRET et, le cas échéant, numéro de TVA intracommunautaire.
 >
-> La TVA applicable au prix de la réservation est déterminée selon l'adresse de facturation du Loueur. Le Loueur demeure seul redevable de cette TVA et de ses obligations déclaratives et comptables. Les factures et avoirs émis en son nom sont mis à sa disposition dans son espace sur la Plateforme. Le Loueur dispose d'un délai de quinze (15) jours à compter de cette mise à disposition pour contester une facture ou un avoir ; à défaut, le document est réputé accepté.
+> Lors de la création de chaque Paiement Combiné, le Loueur transmet à la Société la ventilation de TVA du prix de la réservation, ligne par ligne : libellé, montant hors taxes, taux de TVA, montant de TVA et, pour une ligne à taux nul, le motif de l'absence de TVA (franchise en base, territoire hors du champ d'application de la TVA ou somme non soumise à la TVA). La Société reprend ces données telles quelles sur les factures et avoirs émis au nom du Loueur, avec les mentions légales correspondant aux motifs déclarés. Elle se limite à en contrôler la cohérence arithmétique et refuse la création d'un Paiement Combiné dont la ventilation est absente ou incohérente. Elle ne détermine ni ne corrige les taux et montants transmis.
+>
+> Le Loueur est seul responsable de l'exactitude des libellés, taux, montants et motifs transmis. Il demeure seul redevable de la TVA afférente au prix de la réservation, y compris de toute TVA mentionnée sur une facture émise en son nom, ainsi que de ses obligations déclaratives et comptables. Il garantit la Société contre toute réclamation, tout redressement et toute pénalité résultant d'une ventilation inexacte. Les factures et avoirs émis en son nom sont mis à sa disposition dans son espace sur la Plateforme. Le Loueur dispose d'un délai de quinze (15) jours à compter de cette mise à disposition pour contester une facture ou un avoir ; à défaut, le document est réputé accepté.
 >
 > La Société facture en son nom propre au Locataire les Frais de Service Gando afférents au Paiement Combiné, avec application de sa propre TVA. Le Locataire reçoit ainsi deux factures pour un même paiement.
 >
@@ -438,6 +442,82 @@ Nouvelle rédaction :
 
 > Les Frais de Service Gando sont dus par le Locataire à la Société lors de l'acceptation de la Caution. Ils représentent un pourcentage compris entre deux pour cent (2 %) et quatre pour cent (4 %) du Montant de la Caution, calculé dynamiquement en fonction du Score de Solvabilité du Locataire. Par exception, les Frais de Service Gando applicables aux Cautions de l'Offre Swift et de l'Offre Custom sont ceux définis à l'article 28.
 
+### **Politique de confidentialité**
+
+#### **Introduction**
+
+Rédaction actuelle :
+
+> La présente politique décrit comment **Gando** traite vos données personnelles lorsque vous utilisez nos services de sécurisation de caution sans blocage de fonds, que vous soyez **loueur** (client professionnel) ou **client final** (locataire payant la sécurisation).
+
+Nouvelle rédaction :
+
+> La présente politique décrit comment **Gando** traite vos données personnelles lorsque vous utilisez nos services de sécurisation de caution sans blocage de fonds, y compris lorsque la caution est réglée avec la réservation (paiement combiné), que vous soyez **loueur** (client professionnel) ou **client final** (locataire payant la sécurisation).
+
+#### **2.1 Données collectées directement auprès de vous**
+
+Lignes ajoutées :
+
+| **Catégorie** | **Exemples** | **Concerne** |
+| :-- | :-- | :-- |
+| Facturation du paiement combiné | Client final : nom, prénom, adresse postale. Loueur : dénomination, adresse, SIRET, numéro de TVA | Client final, loueur |
+| Empreinte d'identité bancaire | Empreinte (hachage) de l'e-mail, du prénom, du nom et de la date de naissance | Client final |
+
+#### **2.2 Données collectées via des tiers**
+
+Ligne ajoutée :
+
+| **Catégorie** | **Source** | **Concerne** |
+| :-- | :-- | :-- |
+| Date d'expiration de la carte | Prestataire de paiement, lorsqu'il la fournit | Client final |
+
+#### **3. Finalités, bases légales et durées de conservation**
+
+Lignes ajoutées :
+
+| **Finalité** | **Base légale (RGPD)** | **Durée de conservation** |
+| :-- | :-- | :-- |
+| Paiement combiné : encaissement pour le compte du loueur, émission des factures et avoirs | Exécution du contrat (Art. 6.1.b) + obligation légale (facturation) | Pièces comptables : 10 ans • Autres données : durée de la caution + 5 ans |
+| Réutilisation de la connexion bancaire entre cautions (cf. §5.5) | Consentement (Art. 6.1.a) | Jusqu'à l'expiration de l'autorisation bancaire ou la déconnexion de votre banque |
+| Prévention de la fraude liée à la réutilisation de la connexion bancaire | Intérêt légitime (Art. 6.1.f) | 5 ans |
+
+#### **4. Catégories de destinataires**
+
+Rédaction actuelle :
+
+> - **Bridge** (Agrégateur agréé DSP2 par l'ACPR) : connexion bancaire et récupération des données nécessaires au scoring.
+
+Nouvelle rédaction :
+
+> - **Bridge** (Agrégateur agréé DSP2 par l'ACPR) : connexion bancaire et récupération des données nécessaires au scoring, y compris lors de la réutilisation d'une connexion existante (cf. §5.5).
+
+Mentions ajoutées :
+
+> - **Le loueur**, dans le cadre d'un paiement combiné : factures et avoirs émis en son nom à votre attention (identité, adresse, montants). Il ne reçoit jamais le résultat de l'analyse de solvabilité d'une caution conclue avec un autre loueur.
+> - **Pennylane** : émission des factures et avoirs des frais de sécurisation Gando dans le cadre d'un paiement combiné, et tenue de la comptabilité de Gando.
+
+#### **5. Analyse de solvabilité via open banking et décision automatisée**
+
+Rédaction actuelle :
+
+> Cette section concerne les **clients finaux** uniquement.
+
+Nouvelle rédaction :
+
+> Cette section concerne les **clients finaux** uniquement. Elle ne s'applique pas aux cautions sécurisées sans analyse de solvabilité (offre Swift, ou offre Custom sans analyse) : aucune connexion bancaire n'est alors demandée.
+
+Sous-section ajoutée :
+
+> **5.5 Réutilisation de votre connexion bancaire**
+>
+> Lorsque vous avez connecté votre banque pour une caution Gando, cette connexion peut être réutilisée pour une caution suivante, y compris chez un autre loueur, tant que l'autorisation donnée à votre banque est valide. Vous n'avez alors pas à reconnecter votre banque.
+>
+> - **Conditions** : la connexion n'est proposée que si votre e-mail, votre prénom, votre nom et votre date de naissance sont identiques à ceux de la personne qui l'a établie. Nous comparons une empreinte de ces données, jamais les données en clair. Sans correspondance exacte, une nouvelle connexion vous est demandée et aucune information sur une connexion existante n'est révélée.
+> - **Analyse** : chaque caution donne lieu à une nouvelle analyse, sur des données actualisées.
+> - **Cloisonnement** : chaque loueur ne reçoit que le résultat de l'analyse de sa propre caution. Il n'a accès ni à vos autres cautions, ni à l'identité des autres loueurs.
+> - **Prévention de la fraude** : nous surveillons les réutilisations (changement de téléphone ou de carte, cautions rapprochées chez plusieurs loueurs) et pouvons demander une vérification complémentaire.
+> - **Déconnexion** : vous pouvez à tout moment utiliser « Déconnecter ma banque » dans le parcours de caution, ou écrire à [<u>contact@gando.app</u>](mailto:dpo@gando.app). Nous demandons alors à Bridge de supprimer l'accès, et votre banque ne vous est plus proposée. Vos cautions en cours et passées ne sont pas modifiées et restent conservées selon les durées de la section 3.
+
 ## **Si vous n'acceptez pas ces modifications**
 
 En continuant à utiliser Gando après le 2 novembre 2026, vous acceptez les nouvelles versions.
@@ -446,4 +526,4 @@ Si vous êtes loueur et que vous refusez ces modifications, vous pouvez fermer v
 
 ## **Une question ?**
 
-Pour toute question sur ces changements, écrivez à [<u>contact@gando.app</u>](mailto:support@gando.app). Pour vos données personnelles, contactez notre délégué à la protection des données à [<u>dpo@gando.app</u>](mailto:dpo@gando.app).
+Pour toute question sur ces changements, écrivez à [<u>contact@gando.app</u>](mailto:support@gando.app). Pour vos données personnelles, contactez notre délégué à la protection des données à contact[<u>@gando.app</u>](mailto:dpo@gando.app). 
