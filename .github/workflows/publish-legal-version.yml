@@ -36,7 +36,7 @@ concurrency:
 
 jobs:
   publish:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       # version name before the revision is chosen; TAG (final name) and RELEASE_TAG are set by the steps below
       BASE_TAG: ${{ inputs.document }}-${{ inputs.effective_date }}
