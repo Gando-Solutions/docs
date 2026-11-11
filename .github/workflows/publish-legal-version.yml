@@ -80,13 +80,45 @@ jobs:
           done
           exit $missing
 
+      # production only: Supabase network restrictions block the GitHub runners, so this runner's IP is allowed for the run and removed by the last step
+      - name: Allow the runner IP on the production database
+        if: inputs.dry_run != true && inputs.environment == 'production'
+        env:
+          SUPABASE_TOKEN: ${{ secrets.LEGAL_SUPABASE_NETWORK_TOKEN }}
+          PROJECT_REF: ${{ secrets.LEGAL_SUPABASE_PROJECT_REF }}
+        run: |
+          set -euo pipefail
+          : "${SUPABASE_TOKEN:?LEGAL_SUPABASE_NETWORK_TOKEN secret is not set}" "${PROJECT_REF:?LEGAL_SUPABASE_PROJECT_REF secret is not set}"
+          api="https://api.supabase.com/v1/projects/$PROJECT_REF/network-restrictions"
+          ip=$(curl -fsS https://api.ipify.org)
+          [[ "$ip" =~ ^[0-9]{1,3}(\.[0-9]{1,3}){3}$ ]] || { echo "::error::cannot read the runner IP"; exit 1; }
+          cidr="$ip/32"
+          current=$(curl -fsS -H "Authorization: Bearer $SUPABASE_TOKEN" "$api" | jq -c '.config.dbAllowedCidrs')
+          # an empty list means no restriction is applied: adding an entry would lock the database to this runner
+          if [ "$(jq length <<<"$current")" = 0 ]; then echo "no network restriction applied, nothing to allow"; exit 0; fi
+          # set before the apply so the last step cleans up even if the apply or the wait fails
+          echo "RUNNER_CIDR=$cidr" >> "$GITHUB_ENV"
+          body=$(jq -cn --argjson l "$current" --arg c "$cidr" '{db_allowed_cidrs: ($l + [$c] | unique)}')
+          curl -fsS -X POST -H "Authorization: Bearer $SUPABASE_TOKEN" -H "Content-Type: application/json" -d "$body" "$api/apply" >/dev/null
+          for _ in $(seq 1 12); do
+            state=$(curl -fsS -H "Authorization: Bearer $SUPABASE_TOKEN" "$api" | jq -r --arg c "$cidr" 'if .status == "applied" and (.config.dbAllowedCidrs | index($c)) then "ok" else "wait" end')
+            [ "$state" = ok ] && exit 0
+            sleep 5
+          done
+          echo "::error::the network restriction was not applied within 60 seconds"; exit 1
+
+      # production retries for about a minute: the new restriction takes a few seconds to reach the pooler
       - name: Check database access
         if: inputs.dry_run != true
         env:
           DB_URL: ${{ secrets[format('{0}LEGAL_DB_URL', env.SECRET_PREFIX)] }}
         run: |
-          psql "$DB_URL" -v ON_ERROR_STOP=1 -q -t -A -c "select count(*) from legal_document_versions" >/dev/null \
-            || { echo "::error::cannot read legal_document_versions with the database URL (wrong user, password or host, or the migration is not deployed)"; exit 1; }
+          attempts=1; [ "$MODE" = production ] && attempts=12
+          for i in $(seq 1 "$attempts"); do
+            psql "$DB_URL" -v ON_ERROR_STOP=1 -q -t -A -c "select count(*) from legal_document_versions" >/dev/null && exit 0
+            [ "$i" = "$attempts" ] || sleep 5
+          done
+          echo "::error::cannot read legal_document_versions with the database URL (wrong user, password or host, network restriction, or the migration is not deployed)"; exit 1
 
       # a corrected text for a date that already has a version becomes -r2, -r3, ...; the same text reuses the name (a re-run)
       - name: Choose the version name
@@ -225,3 +257,25 @@ jobs:
             if [ -f "$f" ]; then echo '```json'; cat "$f"; echo '```'; fi
             echo "Order: upload, database row, version page, then the release (the only irreversible step). A failed run can be re-run: an identical upload is skipped and an open PR is reused."
           } >> "$GITHUB_STEP_SUMMARY"
+
+      # must stay the last step: it closes the network restriction opened above, even when the run failed or was cancelled
+      - name: Remove the runner IP from the production database
+        if: always() && env.RUNNER_CIDR != ''
+        env:
+          SUPABASE_TOKEN: ${{ secrets.LEGAL_SUPABASE_NETWORK_TOKEN }}
+          PROJECT_REF: ${{ secrets.LEGAL_SUPABASE_PROJECT_REF }}
+        run: |
+          set -euo pipefail
+          api="https://api.supabase.com/v1/projects/$PROJECT_REF/network-restrictions"
+          current=$(curl -fsS -H "Authorization: Bearer $SUPABASE_TOKEN" "$api" | jq -c '.config.dbAllowedCidrs')
+          remaining=$(jq -c --arg c "$RUNNER_CIDR" 'map(select(. != $c))' <<<"$current")
+          # an empty list would mean no restriction at all: refuse to apply it
+          [ "$(jq length <<<"$remaining")" != 0 ] || { echo "::error::removing $RUNNER_CIDR would leave no allowed range, not applying: check the restrictions in Supabase"; exit 1; }
+          body=$(jq -cn --argjson l "$remaining" '{db_allowed_cidrs: $l}')
+          curl -fsS -X POST -H "Authorization: Bearer $SUPABASE_TOKEN" -H "Content-Type: application/json" -d "$body" "$api/apply" >/dev/null
+          for _ in $(seq 1 12); do
+            state=$(curl -fsS -H "Authorization: Bearer $SUPABASE_TOKEN" "$api" | jq -r --arg c "$RUNNER_CIDR" 'if .status == "applied" and ((.config.dbAllowedCidrs | index($c)) | not) then "ok" else "wait" end')
+            [ "$state" = ok ] && exit 0
+            sleep 5
+          done
+          echo "::error::could not confirm that $RUNNER_CIDR was removed: check the restrictions in Supabase"; exit 1
