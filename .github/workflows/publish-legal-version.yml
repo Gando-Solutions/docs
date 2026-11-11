@@ -96,13 +96,15 @@ jobs:
           current=$(curl -fsS -H "Authorization: Bearer $SUPABASE_TOKEN" "$api" | jq -c '.config.dbAllowedCidrs')
           # an empty list means no restriction is applied: adding an entry would lock the database to this runner
           if [ "$(jq length <<<"$current")" = 0 ]; then echo "no network restriction applied, nothing to allow"; exit 0; fi
-          # set before the apply so the last step cleans up even if the apply or the wait fails
+          # set before the change so the last step cleans up even if the change or the wait fails
           echo "RUNNER_CIDR=$cidr" >> "$GITHUB_ENV"
-          body=$(jq -cn --argjson l "$current" --arg c "$cidr" '{db_allowed_cidrs: ($l + [$c] | unique)}')
-          curl -fsS -X POST -H "Authorization: Bearer $SUPABASE_TOKEN" -H "Content-Type: application/json" -d "$body" "$api/apply" >/dev/null
+          # PATCH touches only this entry: never send the whole list (an unknown key in the apply endpoint empties it)
+          body=$(jq -cn --arg c "$cidr" '{add: {dbAllowedCidrs: [$c]}}')
+          curl -fsS -X PATCH -H "Authorization: Bearer $SUPABASE_TOKEN" -H "Content-Type: application/json" -d "$body" "$api" >/dev/null
           for _ in $(seq 1 12); do
-            state=$(curl -fsS -H "Authorization: Bearer $SUPABASE_TOKEN" "$api" | jq -r --arg c "$cidr" 'if .status == "applied" and (.config.dbAllowedCidrs | index($c)) then "ok" else "wait" end')
-            [ "$state" = ok ] && exit 0
+            status=$(curl -fsS -H "Authorization: Bearer $SUPABASE_TOKEN" "$api" | jq -r --arg c "$cidr" 'if .config.dbAllowedCidrs | index($c) then .status else "missing" end')
+            echo "restriction status: $status"
+            [ "$status" = applied ] && exit 0
             sleep 5
           done
           echo "::error::the network restriction was not applied within 60 seconds"; exit 1
@@ -269,13 +271,14 @@ jobs:
           api="https://api.supabase.com/v1/projects/$PROJECT_REF/network-restrictions"
           current=$(curl -fsS -H "Authorization: Bearer $SUPABASE_TOKEN" "$api" | jq -c '.config.dbAllowedCidrs')
           remaining=$(jq -c --arg c "$RUNNER_CIDR" 'map(select(. != $c))' <<<"$current")
-          # an empty list would mean no restriction at all: refuse to apply it
-          [ "$(jq length <<<"$remaining")" != 0 ] || { echo "::error::removing $RUNNER_CIDR would leave no allowed range, not applying: check the restrictions in Supabase"; exit 1; }
-          body=$(jq -cn --argjson l "$remaining" '{db_allowed_cidrs: $l}')
-          curl -fsS -X POST -H "Authorization: Bearer $SUPABASE_TOKEN" -H "Content-Type: application/json" -d "$body" "$api/apply" >/dev/null
+          # an empty list blocks every address: keep this entry rather than lock the database
+          [ "$(jq length <<<"$remaining")" != 0 ] || { echo "::error::removing $RUNNER_CIDR would leave the list empty, not removing: check the restrictions in Supabase"; exit 1; }
+          body=$(jq -cn --arg c "$RUNNER_CIDR" '{remove: {dbAllowedCidrs: [$c]}}')
+          curl -fsS -X PATCH -H "Authorization: Bearer $SUPABASE_TOKEN" -H "Content-Type: application/json" -d "$body" "$api" >/dev/null
           for _ in $(seq 1 12); do
-            state=$(curl -fsS -H "Authorization: Bearer $SUPABASE_TOKEN" "$api" | jq -r --arg c "$RUNNER_CIDR" 'if .status == "applied" and ((.config.dbAllowedCidrs | index($c)) | not) then "ok" else "wait" end')
-            [ "$state" = ok ] && exit 0
+            status=$(curl -fsS -H "Authorization: Bearer $SUPABASE_TOKEN" "$api" | jq -r --arg c "$RUNNER_CIDR" 'if .config.dbAllowedCidrs | index($c) then "present" else .status end')
+            echo "restriction status: $status"
+            [ "$status" = applied ] && exit 0
             sleep 5
           done
           echo "::error::could not confirm that $RUNNER_CIDR was removed: check the restrictions in Supabase"; exit 1
