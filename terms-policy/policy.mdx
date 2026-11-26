@@ -5,11 +5,11 @@ icon: "user-police"
 sidebarTitle: "Politique de confidentialité"
 ---
 
-**Dernière mise à jour : 2 novembre 2026**
+**Date d'entrée en vigueur : 11/12/2026**
 
 La présente politique décrit comment **Gando** traite vos données personnelles lorsque vous utilisez nos services de sécurisation de caution sans blocage de fonds, y compris lorsque la caution est réglée avec la réservation (paiement combiné), que vous soyez **loueur** (client professionnel) ou **client final** (locataire payant la sécurisation).
 
-Nous avons rédigé ce document pour qu'il soit lisible. Si une formulation reste obscure, écrivez-nous à [<u>contact@gando.app</u>](mailto:dpo@gando.app).
+Nous avons rédigé ce document pour qu'il soit lisible. Si une formulation reste obscure, écrivez-nous à [<u>contact@gando.app</u>](mailto:contact@gando.app).
 
 ---
 
@@ -18,7 +18,7 @@ Nous avons rédigé ce document pour qu'il soit lisible. Si une formulation rest
 **Gando**, société par actions simplifiée (SAS) immatriculée au RCS de Paris, dont le siège social est situé à 3 CHEMIN DE LA PORTE VERTE 77144 MONTEVRAIN.
 
 - **Contact général :** [<u>contact@gando.app</u>](mailto:contact@gando.app)
-- **Délégué à la protection des données (DPO) :** [<u>contact@gando.app</u>](mailto:dpo@gando.app)
+- **Délégué à la protection des données (DPO) :** [<u>dpo@gando.app</u>](mailto:dpo@gando.app)
 - **Autorité de contrôle :** Commission Nationale de l'Informatique et des Libertés (CNIL), [<u>www.cnil.fr</u>](http://www.cnil.fr)
 
 ---
@@ -39,13 +39,14 @@ Nous avons rédigé ce document pour qu'il soit lisible. Si une formulation rest
 | Justificatifs (en cas d'encaissement) | Contrat de location, photos, devis, état des lieux | Loueur |
 | Pièces KYC/KYB (selon LCB-FT) | Pièce d'identité, Kbis, justificatif de domicile | Loueur, client final si seuils atteints |
 
-### **2.2 Données collectées via des tiers (avec votre consentement)**
+### **2.2 Données collectées via des tiers**
 
 | **Catégorie** | **Source** | **Concerne** |
 | :-- | :-- | :-- |
 | Données bancaires (open banking) | **Bridge**, prestataire agréé DSP2 par l'ACPR | Client final |
-| Données de paiement et anti-fraude | **Inflow** (PSP), **Stripe** (cautions en cours de migration) | Client final, loueur |
+| Données de paiement et anti-fraude | **Stripe**, **Inflow** (prestataires de services de paiement) | Client final, loueur |
 | Date d'expiration de la carte | Prestataire de paiement, lorsqu'il la fournit | Client final |
+| Caractéristiques de la carte présentée au paiement (cf. §5.6) : banque émettrice, pays, type (débit, crédit, prépayée, professionnelle), marque, quatre derniers chiffres, empreinte technique | Prestataire de paiement, lorsqu'il les fournit | Client final |
 | Données transmises par le loueur | Référence du locataire, montant, durée de la location | Client final |
 
 ### **2.3 Données collectées automatiquement**
@@ -72,6 +73,7 @@ Nous avons rédigé ce document pour qu'il soit lisible. Si une formulation rest
 | Paiement combiné : encaissement pour le compte du loueur, émission des factures et avoirs | Exécution du contrat (Art. 6.1.b) + obligation légale (facturation) | Pièces comptables : 10 ans • Autres données : durée de la caution + 5 ans |
 | Réutilisation de la connexion bancaire entre cautions (cf. §5.5) | Consentement (Art. 6.1.a) | Jusqu'à l'expiration de l'autorisation bancaire ou la déconnexion de votre banque |
 | Prévention de la fraude liée à la réutilisation de la connexion bancaire | Intérêt légitime (Art. 6.1.f) | 5 ans |
+| Contrôle de cohérence entre la carte et le compte bancaire analysé (cf. §5.6) | Intérêt légitime (Art. 6.1.f) | 12 mois à compter de la tentative de paiement |
 | Facturation et comptabilité | Obligation légale (Code de commerce) | 10 ans |
 | Prospection commerciale (loueurs) | Intérêt légitime (Art. 6.1.f) | 3 ans après dernier contact |
 | Envoi d'e-mails transactionnels | Exécution du contrat | Durée de la relation |
@@ -87,7 +89,7 @@ Nous avons rédigé ce document pour qu'il soit lisible. Si une formulation rest
 Vos données peuvent être partagées avec les destinataires suivants, **uniquement dans la mesure nécessaire** à la finalité concernée :
 
 - **Le loueur** ayant créé la caution : identité, statut de la caution, et — uniquement en cas d'activation de la garantie Gando — justificatifs liés à l'encaissement.
-- **Stripe** (Prestataire de Services de Paiement, anciennement Stripe pour les cautions en cours de migration) : exécution des paiements, gestion des empreintes 3DS, des virements et de l'anti-fraude.
+- **Stripe** (prestataires de services de paiement) : exécution des paiements, gestion des empreintes 3DS, des virements et de l'anti-fraude. Le prestataire de paiement nous communique les caractéristiques de la carte utilisées pour le contrôle décrit au §5.6.
 - **Bridge** (Agrégateur agréé DSP2 par l'ACPR) : connexion bancaire et récupération des données nécessaires au scoring, y compris lors de la réutilisation d'une connexion existante (cf. §5.5).
 - **Le loueur**, dans le cadre d'un paiement combiné : factures et avoirs émis en son nom à votre attention (identité, adresse, montants). Il ne reçoit jamais le résultat de l'analyse de solvabilité d'une caution conclue avec un autre loueur.
 - **Pennylane** : émission des factures et avoirs des frais de sécurisation Gando dans le cadre d'un paiement combiné, et tenue de la comptabilité de Gando.
@@ -151,6 +153,19 @@ Lorsque vous avez connecté votre banque pour une caution Gando, cette connexion
 - **Cloisonnement** : chaque loueur ne reçoit que le résultat de l'analyse de sa propre caution. Il n'a accès ni à vos autres cautions, ni à l'identité des autres loueurs.
 - **Prévention de la fraude** : nous surveillons les réutilisations (changement de téléphone ou de carte, cautions rapprochées chez plusieurs loueurs) et pouvons demander une vérification complémentaire.
 - **Déconnexion** : vous pouvez à tout moment utiliser « Déconnecter ma banque » dans le parcours de caution, ou écrire à [<u>dpo@gando.app</u>](mailto:dpo@gando.app). Nous demandons alors à Bridge de supprimer l'accès, et votre banque ne vous est plus proposée. Vos cautions en cours et passées ne sont pas modifiées et restent conservées selon les durées de la section 3.
+
+### **5.6 Contrôle de cohérence entre votre carte et votre compte bancaire**
+
+Au paiement, lorsque le prestataire de paiement nous communique la banque émettrice de votre carte, nous vérifions que cette banque est celle du compte que vous avez connecté. L'analyse de solvabilité porte sur ce compte : ce contrôle garantit qu'elle porte sur le compte qui serait débité en cas d'encaissement, et contribue à prévenir la fraude.
+
+- **Ce que le contrôle compare** : uniquement les établissements. Il ne vérifie ni le titulaire de la carte, ni le compte précis.
+- **Quand une carte est refusée** : seulement si sa banque émettrice et votre banque connectée sont toutes deux identifiées et différentes. Dans tous les autres cas, le paiement se poursuit.
+- **En cas de refus** : aucun montant n'est prélevé. Vous pouvez utiliser une autre carte, connecter un autre compte ou contacter notre support.
+- **Relecture humaine** : notre équipe relit chaque refus pour corriger les erreurs. Vous pouvez demander qu'un membre de l'équipe Gando réexamine un refus, exprimer votre point de vue et contester la décision, en écrivant à [<u>dpo@gando.app</u>](mailto:dpo@gando.app).
+- **Données enregistrées** : pour chaque tentative de paiement, les caractéristiques de la carte listées au §2.2, les banques connectées, le résultat du contrôle et la date. Nous ne conservons jamais le numéro complet de votre carte ni votre IBAN.
+- **Conservation** : ces données sont supprimées **12 mois** après la tentative.
+
+**Base légale :** intérêt légitime de Gando à fiabiliser l'analyse de solvabilité et à prévenir la fraude (Art. 6.1.f RGPD). Vous pouvez vous opposer à ce traitement dans les conditions de la section 9.
 
 ---
 
@@ -237,7 +252,7 @@ Conformément au RGPD et à la loi Informatique et Libertés, vous disposez des 
 - **Droit d'opposition** au traitement fondé sur l'intérêt légitime
 - **Droit de retirer votre consentement** à tout moment, pour les traitements qui en dépendent
 - **Droit de définir des directives** relatives au sort de vos données après votre décès
-- **Droits spécifiques en matière de décision automatisée** (cf. §5.3)
+- **Droits spécifiques en matière de décision automatisée** (cf. §5.3 et §5.6)
 
 ### **Comment exercer vos droits**
 
@@ -281,7 +296,7 @@ Nos services s'adressent exclusivement aux **personnes majeures** (18 ans révol
 Nous pouvons être amenés à modifier cette politique pour refléter une évolution réglementaire, un nouveau service ou un changement de prestataire.
 
 - Toute modification substantielle vous sera notifiée par e-mail et/ou via un bandeau dans l'application au moins **30 jours avant** son entrée en vigueur.
-- L'historique des versions est disponible sur demande à [<u>contact@gando.app</u>](mailto:dpo@gando.app).
+- L'historique des versions est disponible sur demande à [<u>contact@gando.app</u>](mailto:contact@gando.app).
 
 ---
 
@@ -290,7 +305,7 @@ Nous pouvons être amenés à modifier cette politique pour refléter une évolu
 | **Sujet** | **Contact** |
 | :-- | :-- |
 | Questions générales | [<u>contact@gando.app</u>](mailto:contact@gando.app) |
-| Données personnelles & exercice des droits | [<u>contact@gando.app</u>](mailto:dpo@gando.app) |
+| Données personnelles & exercice des droits | [<u>dpo@gando.app</u>](mailto:dpo@gando.app) |
 | Réclamation auprès de l'autorité de contrôle | [<u>CNIL — </u>](https://www.cnil.fr/fr/plaintes)<u>[www.cnil.fr](http://www.cnil.fr)</u> |
 
 Adresse postale : 3 CHEMIN DE LA PORTE VERTE, 77144 MONTEVRAIN
